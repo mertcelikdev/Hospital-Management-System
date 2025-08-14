@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "ZHsP86HbG2k=",
+  "dgSpecHash": "pWFlRKNlobs=",
   "success": true,
   "projectFilePath": "C:\\Users\\mrtcl\\OneDrive\\Masaüstü\\HospitalManagementSystem\\HospitalManagementSystem.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\mrtcl\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\mrtcl\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\mrtcl\\.nuget\\packages\\microsoft.aspnetcore.authentication\\2.3.0\\microsoft.aspnetcore.authentication.2.3.0.nupkg.sha512",
     "C:\\Users\\mrtcl\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.3.0\\microsoft.aspnetcore.authentication.abstractions.2.3.0.nupkg.sha512",
