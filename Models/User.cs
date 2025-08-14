@@ -78,6 +78,8 @@ namespace HospitalManagementSystem.Models
 
         [Display(Name = "Departman")]
         public string? DepartmentId { get; set; }
+    // Doktorlar için departman adı (DepartmentId'den bağımsız basit gösterim alanı)
+    public string? DoctorDepartment { get; set; }
 
         public string EmergencyContact { get; set; } = string.Empty;
 

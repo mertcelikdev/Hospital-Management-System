@@ -1,0 +1,257 @@
+@model HospitalManagementSystem.Models.Patient
+@{
+    ViewData["Title"] = "Tıbbi Geçmiş";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-notes-medical me-2"></i>@Model.FullName - Tıbbi Geçmiş
+                        </h4>
+                        <div>
+                            <a href="@Url.Action("Details", "Patient", new { id = Model.Id })" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-user me-1"></i>Hasta Detayı
+                            </a>
+                            <a href="@Url.Action("Index", "Patient")" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Hasta Özet Bilgileri -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="text-center">
+                                                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                    <i class="fas fa-user fa-2x text-white"></i>
+                                                </div>
+                                                <h5 class="mt-2 mb-0">@Model.FullName</h5>
+                                                <small class="text-muted">@Model.Age yaşında, @Model.Gender</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <table class="table table-sm table-borderless">
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-id-card me-2 text-primary"></i>TC Kimlik:</td>
+                                                            <td>@Model.IdentityNumber</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-calendar me-2 text-primary"></i>Doğum Tarihi:</td>
+                                                            <td>@Model.DateOfBirth.ToString("dd.MM.yyyy")</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-tint me-2 text-danger"></i>Kan Grubu:</td>
+                                                            <td>@(string.IsNullOrEmpty(Model.BloodType) ? "Belirtilmemiş" : Model.BloodType)</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <table class="table table-sm table-borderless">
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-phone me-2 text-success"></i>Telefon:</td>
+                                                            <td>@Model.PhoneNumber</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-envelope me-2 text-success"></i>E-posta:</td>
+                                                            <td>@(string.IsNullOrEmpty(Model.Email) ? "Belirtilmemiş" : Model.Email)</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold"><i class="fas fa-user-clock me-2 text-info"></i>Kayıt Tarihi:</td>
+                                                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mevcut Sağlık Bilgileri -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Alerjiler
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    @if (string.IsNullOrEmpty(Model.Allergies))
+                                    {
+                                        <p class="text-muted mb-0">Bilinen alerji yok</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="mb-0">@Model.Allergies</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-notes-medical me-2"></i>Kronik Hastalıklar
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    @if (string.IsNullOrEmpty(Model.ChronicDiseases))
+                                    {
+                                        <p class="text-muted mb-0">Bilinen kronik hastalık yok</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="mb-0">@Model.ChronicDiseases</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-pills me-2"></i>Mevcut İlaçlar
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    @if (string.IsNullOrEmpty(Model.CurrentMedications))
+                                    {
+                                        <p class="text-muted mb-0">Düzenli kullanılan ilaç yok</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="mb-0">@Model.CurrentMedications</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Acil Durum Bilgileri -->
+                    @if (!string.IsNullOrEmpty(Model.EmergencyContactName) || !string.IsNullOrEmpty(Model.EmergencyContactPhone))
+                    {
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-phone-alt me-2"></i>Acil Durum İletişim
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <strong>Kişi:</strong> @(string.IsNullOrEmpty(Model.EmergencyContactName) ? "Belirtilmemiş" : Model.EmergencyContactName)
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Telefon:</strong> @(string.IsNullOrEmpty(Model.EmergencyContactPhone) ? "Belirtilmemiş" : Model.EmergencyContactPhone)
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Yakınlık:</strong> @(string.IsNullOrEmpty(Model.EmergencyContactRelation) ? "Belirtilmemiş" : Model.EmergencyContactRelation)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Gelecek Geliştirmeler için Placeholder -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-history me-2"></i>Tıbbi Geçmiş Kayıtları
+                                    </h6>
+                                </div>
+                                <div class="card-body text-center py-5">
+                                    <i class="fas fa-stethoscope fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Tıbbi Geçmiş Kayıtları</h5>
+                                    <p class="text-muted mb-4">
+                                        Bu bölüm gelecekte hastaya ait muayene kayıtları, tetkik sonuçları, 
+                                        reçeteler ve diğer tıbbi belgeler için kullanılacaktır.
+                                    </p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-outline-primary" disabled>
+                                            <i class="fas fa-file-medical me-1"></i>Muayene Kayıtları
+                                        </button>
+                                        <button class="btn btn-outline-success" disabled>
+                                            <i class="fas fa-flask me-1"></i>Tetkik Sonuçları
+                                        </button>
+                                        <button class="btn btn-outline-info" disabled>
+                                            <i class="fas fa-prescription me-1"></i>Reçeteler
+                                        </button>
+                                        <button class="btn btn-outline-warning" disabled>
+                                            <i class="fas fa-x-ray me-1"></i>Görüntüleme
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-3">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bu özellikler yakında eklenecektir.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 8px;
+    }
+    
+    .table td {
+        padding: 0.25rem 0;
+        border: none;
+    }
+    
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+    
+    .border-warning {
+        border-color: #ffc107 !important;
+    }
+    
+    .border-danger {
+        border-color: #dc3545 !important;
+    }
+    
+    .border-info {
+        border-color: #0dcaf0 !important;
+    }
+    
+    .border-success {
+        border-color: #198754 !important;
+    }
+    
+    .border-secondary {
+        border-color: #6c757d !important;
+    }
+</style>

@@ -1,0 +1,202 @@
+@model HospitalManagementSystem.DTOs.CreateMedicationDto
+@{
+    ViewData["Title"] = "Yeni İlaç Ekle";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Yeni İlaç Ekle</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index")">İlaçlar</a></li>
+                        <li class="breadcrumb-item active">Yeni İlaç</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">İlaç Bilgileri</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">İlaç Adı *</label>
+                                    <input asp-for="Name" type="text" class="form-control" placeholder="İlaç adını giriniz" required />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <!-- ActiveIngredient alanı DTO'da bulunmuyor, kaldırıldı -->
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Dosage" class="form-label">Doz *</label>
+                                    <input asp-for="Dosage" type="text" class="form-control" placeholder="10mg, 500ml vb." required />
+                                    <span asp-validation-for="Dosage" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Unit" class="form-label">Birim *</label>
+                                    <select asp-for="Unit" class="form-control" required>
+                                        <option value="">Birim Seçiniz</option>
+                                        <option value="tablet">Tablet</option>
+                                        <option value="kapsül">Kapsül</option>
+                                        <option value="şurup">Şurup</option>
+                                        <option value="ampul">Ampul</option>
+                                        <option value="flakon">Flakon</option>
+                                        <option value="merhem">Merhem</option>
+                                        <option value="krem">Krem</option>
+                                        <option value="sprey">Sprey</option>
+                                        <option value="damla">Damla</option>
+                                        <option value="adet">Adet</option>
+                                    </select>
+                                    <span asp-validation-for="Unit" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="StockQuantity" class="form-label">Stok Miktarı *</label>
+                                    <input asp-for="StockQuantity" type="number" class="form-control" min="0" placeholder="0" required />
+                                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Manufacturer" class="form-label">Üretici</label>
+                                    <input asp-for="Manufacturer" type="text" class="form-control" placeholder="Üretici firma adı" />
+                                    <span asp-validation-for="Manufacturer" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="BatchNumber" class="form-label">Parti Numarası</label>
+                                    <input asp-for="BatchNumber" type="text" class="form-control" placeholder="Parti numarası" />
+                                    <span asp-validation-for="BatchNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ExpiryDate" class="form-label">Son Kullanma Tarihi</label>
+                                    <input asp-for="ExpiryDate" type="date" class="form-control" />
+                                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <!-- Price alanı DTO'da bulunmuyor, kaldırıldı -->
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label">Açıklama</label>
+                                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="İlaç hakkında ek bilgiler..."></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="Instructions" class="form-label">Kullanım Talimatları</label>
+                                    <textarea asp-for="Instructions" class="form-control" rows="2" placeholder="Nasıl kullanılacağına dair talimatlar..."></textarea>
+                                    <span asp-validation-for="Instructions" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label asp-for="SideEffects" class="form-label">Yan Etkiler</label>
+                                    <textarea asp-for="SideEffects" class="form-control" rows="2" placeholder="Bilinen yan etkiler..."></textarea>
+                                    <span asp-validation-for="SideEffects" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">İşlemler</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="mdi mdi-content-save me-1"></i> İlacı Kaydet
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="mdi mdi-arrow-left me-1"></i> Geri Dön
+                            </a>
+                        </div>
+
+                        <hr />
+                        <h6>Bilgi</h6>
+                        <div class="text-muted">
+                            <small>
+                                <strong>Zorunlu Alanlar:</strong><br />
+                                • İlaç Adı<br />
+                                • Doz<br />
+                                • Birim<br />
+                                • Stok Miktarı
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">İpuçları</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" role="alert">
+                            <h6 class="alert-heading">Dikkat Edilecek Hususlar</h6>
+                            <ul class="mb-0 font-13">
+                                <li>İlaç adını tam ve doğru yazınız</li>
+                                <li>Doz bilgisini net bir şekilde belirtiniz</li>
+                                <li>Stok miktarını güncel tutunuz</li>
+                                <li>Son kullanma tarihini kontrol ediniz</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

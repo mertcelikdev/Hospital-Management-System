@@ -47,14 +47,31 @@
                                     </h6>
                                     
                                     <div class="mb-3">
+                                        <label class="form-label fw-semibold">TC Kimlik No ile Hasta Bul</label>
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            <input type="text" maxlength="11" class="form-control" id="tcLookupInput" placeholder="TC Kimlik No" />
+                                            <button type="button" class="btn btn-outline-primary" id="tcLookupBtn">Ara</button>
+                                        </div>
+                                        <div id="tcLookupFeedback" class="small"></div>
+                                        <div id="tcPatientSummary" class="alert alert-info py-2 px-3 mt-2 d-none">
+                                            <strong>Hasta:</strong> <span id="tcPatientName"></span> | <strong>Yaş:</strong> <span id="tcPatientAge"></span> | <span id="tcPatientGender"></span><br />
+                                            <i class="fas fa-phone"></i> <span id="tcPatientPhone"></span> &nbsp; <i class="fas fa-envelope"></i> <span id="tcPatientEmail"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
                                         <label asp-for="PatientId" class="form-label fw-semibold">Hasta *</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
                                             <select asp-for="PatientId" class="form-select" id="PatientId">
                                                 <option value="">Hasta seçiniz</option>
-                                                @foreach (var patient in ViewBag.Patients as List<User>)
+                                                @if (ViewBag.Patients != null)
                                                 {
-                                                    <option value="@patient.Id">@patient.Name - @patient.Email</option>
+                                                    @foreach (var patient in ViewBag.Patients as IEnumerable<dynamic>)
+                                                    {
+                                                        <option value="@patient.Id">@patient.FullName - @patient.Email</option>
+                                                    }
                                                 }
                                             </select>
                                         </div>
@@ -67,9 +84,12 @@
                                             <span class="input-group-text"><i class="fas fa-user-md"></i></span>
                                             <select asp-for="DoctorId" class="form-select" id="DoctorId">
                                                 <option value="">Doktor seçiniz</option>
-                                                @foreach (var doctor in ViewBag.Doctors as List<User>)
+                                                @if (ViewBag.Doctors != null)
                                                 {
-                                                    <option value="@doctor.Id">Dr. @doctor.Name</option>
+                                                    @foreach (var doctor in ViewBag.Doctors as IEnumerable<dynamic>)
+                                                    {
+                                                        <option value="@doctor.Id">Dr. @doctor.Name</option>
+                                                    }
                                                 }
                                             </select>
                                         </div>
@@ -80,11 +100,36 @@
                                         <label asp-for="Type" class="form-label fw-semibold">Randevu Türü *</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-stethoscope"></i></span>
-                                            <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentType>()">
+                                            <select asp-for="Type" class="form-select">
                                                 <option value="">Randevu türü seçiniz</option>
+                                                <option value="Muayene">Muayene</option>
+                                                <option value="Kontrol">Kontrol</option>
+                                                <option value="Acil">Acil</option>
+                                                <option value="Ameliyat">Ameliyat</option>
+                                                <option value="İnceleme">İnceleme</option>
+                                                <option value="CheckUp">CheckUp</option>
+                                                <option value="Tedavi">Tedavi</option>
                                             </select>
                                         </div>
                                         <span asp-validation-for="Type" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Department" class="form-label fw-semibold">Departman</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                            <select asp-for="Department" class="form-select" id="Department">
+                                                <option value="">Departman seçiniz</option>
+                                                @if (ViewBag.Departments != null)
+                                                {
+                                                    @foreach (var dept in ViewBag.Departments as IEnumerable<dynamic>)
+                                                    {
+                                                        <option value="@dept.Name">@dept.Name</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="Department" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
@@ -97,23 +142,59 @@
                                     </h6>
 
                                     <div class="mb-3">
-                                        <label asp-for="AppointmentDate" class="form-label fw-semibold">Randevu Tarihi ve Saati *</label>
+                                        <label class="form-label fw-semibold">Randevu Tarihi *</label>
                                         <div class="input-group">
-                                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                            <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
-                                        </div>
-                                        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                                        <div class="form-text">
-                                            <i class="fas fa-info-circle"></i> Lütfen uygun bir tarih ve saat seçiniz
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            <input id="appointmentDate" class="form-control" type="date" />
                                         </div>
                                     </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Randevu Saati *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                            <select id="appointmentTime" class="form-select">
+                                                <option value="">Saat seçiniz</option>
+                                                <option value="08:00">08:00</option>
+                                                <option value="08:30">08:30</option>
+                                                <option value="09:00">09:00</option>
+                                                <option value="09:30">09:30</option>
+                                                <option value="10:00">10:00</option>
+                                                <option value="10:30">10:30</option>
+                                                <option value="11:00">11:00</option>
+                                                <option value="11:30">11:30</option>
+                                                <option value="12:00">12:00</option>
+                                                <option value="12:30">12:30</option>
+                                                <option value="13:00">13:00</option>
+                                                <option value="13:30">13:30</option>
+                                                <option value="14:00">14:00</option>
+                                                <option value="14:30">14:30</option>
+                                                <option value="15:00">15:00</option>
+                                                <option value="15:30">15:30</option>
+                                                <option value="16:00">16:00</option>
+                                                <option value="16:30">16:30</option>
+                                                <option value="17:00">17:00</option>
+                                                <option value="17:30">17:30</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden field for actual AppointmentDate -->
+                                    <input asp-for="AppointmentDate" type="hidden" id="hiddenAppointmentDate" />
+                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
 
                                     <div class="mb-3">
                                         <label asp-for="Status" class="form-label fw-semibold">Durum</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-flag"></i></span>
-                                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentStatus>()">
+                                            <select asp-for="Status" class="form-select">
                                                 <option value="">Durum seçiniz</option>
+                                                <option value="Planlandı">Planlandı</option>
+                                                <option value="Onaylandı">Onaylandı</option>
+                                                <option value="DevamEdiyor">Devam Ediyor</option>
+                                                <option value="Tamamlandı">Tamamlandı</option>
+                                                <option value="İptalEdildi">İptal Edildi</option>
+                                                <option value="Gelmedi">Gelmedi</option>
                                             </select>
                                         </div>
                                         <span asp-validation-for="Status" class="text-danger"></span>
@@ -184,40 +265,196 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default status to Scheduled
-            document.getElementById('Status').value = 'Scheduled';
+            // Set default status to Planlandı
+            const statusSelect = document.getElementById('Status');
+            if (statusSelect) {
+                statusSelect.value = 'Planlandı';
+            }
+            // TC lookup events
+            const tcInput = document.getElementById('tcLookupInput');
+            const tcBtn = document.getElementById('tcLookupBtn');
+            if (tcInput && tcBtn) {
+                tcBtn.addEventListener('click', lookupPatientByTc);
+                tcInput.addEventListener('keyup', function(e){
+                    // Enter ile arama
+                    if(e.key === 'Enter') lookupPatientByTc();
+                    // 11 haneye ulaşınca otomatik ara
+                    if(this.value.replace(/[^0-9]/g,'').length === 11) {
+                        lookupPatientByTc();
+                    }
+                });
+            }
             
             // Set minimum date to today
-            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+            const appointmentDateInput = document.getElementById('appointmentDate');
             const now = new Date();
-            const minDateTime = now.toISOString().slice(0, 16);
-            appointmentDateInput.min = minDateTime;
+            const today = now.toISOString().slice(0, 10);
+            appointmentDateInput.min = today;
+            appointmentDateInput.value = today;
+            
+            // Combine date and time when form is submitted
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const dateInput = document.getElementById('appointmentDate');
+                const timeInput = document.getElementById('appointmentTime');
+                const hiddenInput = document.getElementById('hiddenAppointmentDate');
+                
+                if (dateInput.value && timeInput.value) {
+                    const combinedDateTime = new Date(dateInput.value + 'T' + timeInput.value + ':00');
+                    hiddenInput.value = combinedDateTime.toISOString().slice(0, 19);
+                } else {
+                    e.preventDefault();
+                    alert('Lütfen tarih ve saat seçiniz.');
+                    return false;
+                }
+            });
+            
+            // Update combined date when inputs change
+            function updateCombinedDate() {
+                const dateInput = document.getElementById('appointmentDate');
+                const timeInput = document.getElementById('appointmentTime');
+                const hiddenInput = document.getElementById('hiddenAppointmentDate');
+                
+                if (dateInput.value && timeInput.value) {
+                    const combinedDateTime = new Date(dateInput.value + 'T' + timeInput.value + ':00');
+                    hiddenInput.value = combinedDateTime.toISOString().slice(0, 19);
+                }
+            }
+            
+            document.getElementById('appointmentDate').addEventListener('change', function() {
+                updateCombinedDate();
+                checkAvailableTimeSlots();
+            });
+            document.getElementById('appointmentTime').addEventListener('change', updateCombinedDate);
+            
+            // Doktor değiştiğinde de kontrol et
+            document.getElementById('DoctorId').addEventListener('change', checkAvailableTimeSlots);
         });
 
+        // Dolu saatleri kontrol et ve saat dropdown'unu güncelle
+        async function checkAvailableTimeSlots() {
+            const doctorSelect = document.getElementById('DoctorId');
+            const dateInput = document.getElementById('appointmentDate');
+            const timeSelect = document.getElementById('appointmentTime');
+            
+            if (!doctorSelect.value || !dateInput.value) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Appointment/GetAvailableTimeSlots?doctorId=${doctorSelect.value}&date=${dateInput.value}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Tüm option'ları temizle ve yeniden oluştur
+                    timeSelect.innerHTML = '<option value="">Saat seçiniz</option>';
+                    
+                    const allTimeSlots = [
+                        "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                        "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                        "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                        "17:00", "17:30"
+                    ];
+                    
+                    allTimeSlots.forEach(time => {
+                        const option = document.createElement('option');
+                        option.value = time;
+                        option.textContent = time;
+                        
+                        // Eğer saat dolu ise devre dışı bırak ve işaretle
+                        if (!data.availableSlots.includes(time)) {
+                            option.disabled = true;
+                            option.textContent += ' (Dolu)';
+                            option.style.color = '#dc3545';
+                        }
+                        
+                        timeSelect.appendChild(option);
+                    });
+                    
+                    // Eğer seçili saat dolu ise temizle
+                    if (timeSelect.value && !data.availableSlots.includes(timeSelect.value)) {
+                        timeSelect.value = '';
+                    }
+                } else {
+                    console.error('Saat kontrol hatası:', data.message);
+                }
+            } catch (error) {
+                console.error('AJAX hatası:', error);
+            }
+        }
+
         function setQuickAppointment(type) {
-            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+            const dateInput = document.getElementById('appointmentDate');
+            const timeInput = document.getElementById('appointmentTime');
             const now = new Date();
             
             switch(type) {
                 case 'today':
-                    now.setHours(now.getHours() + 2); // 2 saat sonra
+                    dateInput.value = now.toISOString().slice(0, 10);
+                    timeInput.value = (now.getHours() + 2).toString().padStart(2, '0') + ':00';
                     break;
                 case 'tomorrow':
                     now.setDate(now.getDate() + 1);
-                    now.setHours(9, 0, 0, 0); // Yarın saat 9:00
+                    dateInput.value = now.toISOString().slice(0, 10);
+                    timeInput.value = '09:00';
                     break;
                 case 'nextweek':
                     now.setDate(now.getDate() + 7);
-                    now.setHours(9, 0, 0, 0); // Gelecek hafta saat 9:00
+                    dateInput.value = now.toISOString().slice(0, 10);
+                    timeInput.value = '09:00';
                     break;
                 case 'emergency':
-                    now.setMinutes(now.getMinutes() + 30); // 30 dakika sonra
-                    document.getElementById('Type').value = 'Emergency';
-                    document.getElementById('Status').value = 'Confirmed';
+                    dateInput.value = now.toISOString().slice(0, 10);
+                    timeInput.value = (now.getHours()).toString().padStart(2, '0') + ':30';
+                    document.getElementById('Type').value = 'Acil';
+                    document.getElementById('Status').value = 'Onaylandı';
                     break;
             }
-            
-            appointmentDateInput.value = now.toISOString().slice(0, 16);
+        }
+
+        async function lookupPatientByTc(){
+            const tcInput = document.getElementById('tcLookupInput');
+            const feedback = document.getElementById('tcLookupFeedback');
+            const summary = document.getElementById('tcPatientSummary');
+            const patientSelect = document.getElementById('PatientId');
+            const tc = (tcInput.value || '').trim();
+            summary.classList.add('d-none');
+            feedback.classList.remove('text-danger','text-success');
+            if(tc.length !== 11 || !/^\d{11}$/.test(tc)) {
+                feedback.textContent = '11 haneli TC giriniz';
+                feedback.classList.add('text-danger');
+                return;
+            }
+            feedback.textContent = 'Sorgulanıyor...';
+            try {
+                const resp = await fetch(`/Patient/LookupByTc?tc=${tc}`);
+                const data = await resp.json();
+                if(!data.success){
+                    feedback.textContent = data.message || 'Hasta bulunamadı';
+                    feedback.classList.add('text-danger');
+                    return;
+                }
+                feedback.textContent = 'Hasta bulundu';
+                feedback.classList.add('text-success');
+                // Bilgileri doldur
+                document.getElementById('tcPatientName').textContent = data.data.fullName;
+                document.getElementById('tcPatientAge').textContent = data.data.age;
+                document.getElementById('tcPatientGender').textContent = data.data.gender;
+                document.getElementById('tcPatientPhone').textContent = data.data.phone || '-';
+                document.getElementById('tcPatientEmail').textContent = data.data.email || '-';
+                summary.classList.remove('d-none');
+                // Select içinde yoksa ekle
+                if(![...patientSelect.options].some(o=>o.value===data.data.id)){
+                    const opt = document.createElement('option');
+                    opt.value = data.data.id;
+                    opt.textContent = data.data.fullName + (data.data.email ? ' - ' + data.data.email : '');
+                    patientSelect.appendChild(opt);
+                }
+                patientSelect.value = data.data.id;
+            } catch(err){
+                feedback.textContent = 'Hata: ' + err.message;
+                feedback.classList.add('text-danger');
+            }
         }
     </script>
 
@@ -250,5 +487,6 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+    #tcLookupFeedback { min-height:18px; }
     </style>
 }

@@ -1,0 +1,152 @@
+@model List<HospitalManagementSystem.DTOs.PrescriptionDto>
+@{
+    ViewData["Title"] = "Reçeteler";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Reçete Yönetimi</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item active">Reçeteler</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <a href="@Url.Action("Create", "Prescription")" class="btn btn-danger mb-2">
+                                <i class="mdi mdi-plus-circle me-2"></i> Yeni Reçete
+                            </a>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="text-sm-end">
+                                <div class="btn-group">
+                                    <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                        Filtrele <i class="mdi mdi-chevron-down"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="@Url.Action("Index")">Tümü</a>
+                                        <a class="dropdown-item" href="#" onclick="filterByStatus('active')">Aktif</a>
+                                        <a class="dropdown-item" href="#" onclick="filterByStatus('completed')">Tamamlanan</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-centered table-borderless mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Hasta Adı</th>
+                                        <th>Doktor</th>
+                                        <th>Tanı</th>
+                                        <th>İlaç Sayısı</th>
+                                        <th>Tarih</th>
+                                        <th>Geçerlilik</th>
+                                        <th>Durum</th>
+                                        <th style="width: 125px;">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var prescription in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <h5 class="font-14 my-1">@prescription.PatientName</h5>
+                                            </td>
+                                            <td>@prescription.DoctorName</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(prescription.Diagnosis))
+                                                {
+                                                    <span class="text-muted">@prescription.Diagnosis</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-soft-info text-info">@prescription.Medications.Count İlaç</span>
+                                            </td>
+                                            <td>@prescription.PrescriptionDate.ToString("dd.MM.yyyy")</td>
+                                            <td>
+                                                @if (prescription.ValidUntil.HasValue)
+                                                {
+                                                    if (prescription.ValidUntil.Value > DateTime.Now)
+                                                    {
+                                                        <span class="text-success">@prescription.ValidUntil.Value.ToString("dd.MM.yyyy")</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-danger">Süresi Dolmuş</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Belirsiz</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (prescription.IsActive)
+                                                {
+                                                    <span class="badge bg-soft-success text-success">Aktif</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-soft-secondary text-secondary">Pasif</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("Details", new { id = prescription.Id })" class="action-icon text-primary">
+                                                    <i class="mdi mdi-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("Print", new { id = prescription.Id })" class="action-icon text-info" target="_blank">
+                                                    <i class="mdi mdi-printer"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <div class="avatar-sm mx-auto mb-4">
+                                <span class="avatar-title rounded-circle bg-soft-warning text-warning font-20">
+                                    <i class="mdi mdi-prescription"></i>
+                                </span>
+                            </div>
+                            <h5 class="font-16">Reçete Bulunamadı</h5>
+                            <p class="text-muted mb-4">Henüz hiç reçete oluşturulmamış.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary">İlk Reçeteni Oluştur</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterByStatus(status) {
+            // Bu fonksiyon AJAX ile filtreleme yapacak
+            window.location.href = '@Url.Action("Index")' + '?status=' + status;
+        }
+    </script>
+}

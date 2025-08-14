@@ -78,16 +78,5 @@ namespace HospitalManagementSystem.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    public class AuthResponseDto
-    {
-        public bool IsSuccess { get; set; }
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public UserDto? User { get; set; }
-        public string? Token { get; set; }
-        public DateTime? TokenExpiry { get; set; }
-        public List<string> Roles { get; set; } = new List<string>();
-        public string? RefreshToken { get; set; }
-        public Dictionary<string, object> AdditionalData { get; set; } = new Dictionary<string, object>();
-    }
+    // AuthResponseDto ayrı dosyaya taşındı.
 }

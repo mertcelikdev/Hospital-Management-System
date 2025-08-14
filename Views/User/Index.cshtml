@@ -216,28 +216,28 @@
 </div>
 
 @functions {
-    string GetRoleColor(UserRole role)
+    string GetRoleColor(string role)
     {
         return role switch
         {
-            UserRole.Doctor => "primary",
-            UserRole.Patient => "success",
-            UserRole.Nurse => "info",
-            UserRole.Staff => "warning",
-            UserRole.Admin => "danger",
+            "Doctor" => "primary",
+            "Patient" => "success",
+            "Nurse" => "info", 
+            "Staff" => "warning",
+            "Admin" => "danger",
             _ => "secondary"
         };
     }
 
-    string GetRoleDisplayName(UserRole role)
+    string GetRoleDisplayName(string role)
     {
         return role switch
         {
-            UserRole.Doctor => "Doktor",
-            UserRole.Patient => "Hasta",
-            UserRole.Nurse => "Hemşire",
-            UserRole.Staff => "Personel",
-            UserRole.Admin => "Admin",
+            "Doctor" => "Doktor",
+            "Patient" => "Hasta",
+            "Nurse" => "Hemşire",
+            "Staff" => "Personel", 
+            "Admin" => "Admin",
             _ => "Bilinmiyor"
         };
     }

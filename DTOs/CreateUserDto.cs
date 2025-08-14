@@ -44,32 +44,6 @@ namespace HospitalManagementSystem.DTOs
         public bool IsActive { get; set; } = true;
     }
 
-    public class CreatePatientDto
-    {
-        [Required(ErrorMessage = "Ad gereklidir")]
-        [StringLength(100, ErrorMessage = "Ad en fazla 100 karakter olabilir")]
-        public string Name { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Email gereklidir")]
-        [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Telefon gereklidir")]
-        [Phone(ErrorMessage = "Geçerli bir telefon numarası giriniz")]
-        public string Phone { get; set; } = string.Empty;
-
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string? Address { get; set; }
-        public string? EmergencyContact { get; set; }
-        public string? BloodType { get; set; }
-        public string? Allergies { get; set; }
-        public string? ChronicConditions { get; set; }
-        public string? InsuranceNumber { get; set; }
-        public string? InsuranceProvider { get; set; }
-    }
-
     public class CreateDoctorDto
     {
         [Required(ErrorMessage = "Ad gereklidir")]

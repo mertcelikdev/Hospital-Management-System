@@ -1,0 +1,271 @@
+@model HospitalManagementSystem.DTOs.PrescriptionDto
+@{
+    ViewData["Title"] = "Reçete Detayları";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Reçete Detayları</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Reçeteler</a></li>
+                        <li class="breadcrumb-item active">Detaylar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Reçete Bilgileri -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="header-title mb-0">Reçete Bilgileri</h4>
+                    <div>
+                        <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger") me-1">
+                            @(Model.IsActive ? "Aktif" : "Pasif")
+                        </span>
+                        @if (Model.ValidUntil.HasValue)
+                        {
+                            var validityClass = Model.ValidUntil.Value < DateTime.Now ? "bg-danger" : "bg-info";
+                            <span class="badge @validityClass">
+                                @(Model.ValidUntil.Value < DateTime.Now ? "Süresi Dolmuş" : "Geçerli")
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-semibold text-muted">Reçete No:</td>
+                                    <td>@Model.Id</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Hasta:</td>
+                                    <td><strong>@Model.PatientName</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Doktor:</td>
+                                    <td>@Model.DoctorName</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Tanı:</td>
+                                    <td>@(Model.Diagnosis ?? "Belirtilmemiş")</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-semibold text-muted">Oluşturma Tarihi:</td>
+                                    <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Geçerlilik Tarihi:</td>
+                                    <td>
+                                        @if (Model.ValidUntil.HasValue)
+                                        {
+                                            @Model.ValidUntil.Value.ToString("dd.MM.yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Toplam İlaç:</td>
+                                    <td><span class="badge bg-primary">@Model.Medications.Count</span></td>
+                                </tr>
+                                @if (!string.IsNullOrEmpty(Model.Notes))
+                                {
+                                    <tr>
+                                        <td class="fw-semibold text-muted">Notlar:</td>
+                                        <td>@Model.Notes</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İlaçlar -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">Reçetedeki İlaçlar</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Medications.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 5%">#</th>
+                                        <th style="width: 25%">İlaç Adı</th>
+                                        <th style="width: 15%">Doz</th>
+                                        <th style="width: 15%">Sıklık</th>
+                                        <th style="width: 10%">Süre</th>
+                                        <th style="width: 10%">Miktar</th>
+                                        <th style="width: 20%">Kullanım Talimatları</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.Medications.Count; i++)
+                                    {
+                                        var medication = Model.Medications[i];
+                                        <tr>
+                                            <td>@(i + 1)</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-light rounded me-2">
+                                                        <span class="avatar-title bg-soft-info text-info rounded">
+                                                            <i class="mdi mdi-pill"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">@medication.MedicationName</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@medication.Dosage</span>
+                                            </td>
+                                            <td>@medication.Frequency</td>
+                                            <td>@medication.Duration</td>
+                                            <td>
+                                                <span class="fw-semibold">@medication.Quantity</span>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(medication.Instructions))
+                                                {
+                                                    <small>@medication.Instructions</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <span class="avatar-title rounded-circle bg-soft-warning text-warning font-20">
+                                    <i class="mdi mdi-pill-off"></i>
+                                </span>
+                            </div>
+                            <p class="text-muted">Bu reçetede henüz ilaç bulunmuyor.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- İşlemler -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">İşlemler</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        @if (User.HasClaim("permission", "CanPrintPrescriptions"))
+                        {
+                            <a href="@Url.Action("Print", new { id = Model.Id })" class="btn btn-primary" target="_blank">
+                                <i class="mdi mdi-printer me-1"></i> Reçeteyi Yazdır
+                            </a>
+                        }
+                        
+                        @if (User.HasClaim("permission", "CanEditPrescriptions"))
+                        {
+                            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">
+                                <i class="mdi mdi-pencil me-1"></i> Düzenle
+                            </a>
+                        }
+                        
+                        @if (User.HasClaim("permission", "CanDeletePrescriptions"))
+                        {
+                            <button type="button" class="btn btn-danger" onclick="confirmDelete('@Model.Id')">
+                                <i class="mdi mdi-delete me-1"></i> Sil
+                            </button>
+                        }
+                        
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="mdi mdi-arrow-left me-1"></i> Geri Dön
+                        </a>
+                    </div>
+
+                    <hr />
+                    
+                    <!-- Hasta Bilgileri Özeti -->
+                    <!-- Hasta detayları için ayrı navigasyon kaldırıldı; DTO düz alanlar kullanılıyor -->
+
+                    <!-- İstatistikler -->
+                    <h6>Reçete İstatistikleri</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-primary">@Model.Medications.Count</h4>
+                                <p class="text-muted mb-0 font-13">Toplam İlaç</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-success">@Model.Medications.Sum(m => m.Quantity)</h4>
+                                <p class="text-muted mb-0 font-13">Toplam Adet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reçete Silme Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu reçeteyi silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger"><strong>Bu işlem geri alınamaz!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(prescriptionId) {
+            const form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete")/' + prescriptionId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}

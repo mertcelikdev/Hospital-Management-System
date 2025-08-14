@@ -1,0 +1,285 @@
+@model HospitalManagementSystem.DTOs.CreatePrescriptionDto
+@{
+    ViewData["Title"] = "Yeni Reçete";
+    var medications = ViewBag.Medications as List<HospitalManagementSystem.DTOs.MedicationDto>;
+    var patients = ViewBag.Patients as List<HospitalManagementSystem.DTOs.PatientDto>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Yeni Reçete Oluştur</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Reçeteler</a></li>
+                        <li class="breadcrumb-item active">Yeni Reçete</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post" id="prescriptionForm">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">Reçete Bilgileri</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="PatientId" class="form-label">Hasta *</label>
+                                    <select asp-for="PatientId" class="form-control select2" id="PatientId" required>
+                                        <option value="">Hasta Seçiniz</option>
+                                        @if (patients != null)
+                                        {
+                                            @foreach (var patient in patients)
+                                            {
+                                                <option value="@patient.Id" selected="@(Model?.PatientId == patient.Id)">
+                                                    @patient.FullName (@patient.TcNo)
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="PatientId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="ValidUntil" class="form-label">Geçerlilik Tarihi</label>
+                                    <input asp-for="ValidUntil" type="date" class="form-control" id="ValidUntil" />
+                                    <span asp-validation-for="ValidUntil" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Diagnosis" class="form-label">Tanı</label>
+                                    <input asp-for="Diagnosis" type="text" class="form-control" id="Diagnosis" placeholder="Hasta tanısı..." />
+                                    <span asp-validation-for="Diagnosis" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Notes" class="form-label">Notlar</label>
+                                    <input asp-for="Notes" type="text" class="form-control" id="Notes" placeholder="Ek notlar..." />
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">İlaçlar</h4>
+                        <button type="button" class="btn btn-sm btn-success" onclick="addMedication()">
+                            <i class="mdi mdi-plus"></i> İlaç Ekle
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="medicationsContainer">
+                            <!-- İlaçlar buraya dinamik olarak eklenecek -->
+                        </div>
+                        
+                        <div class="text-center" id="emptyState">
+                            <div class="avatar-sm mx-auto mb-3">
+                                <span class="avatar-title rounded-circle bg-soft-info text-info font-20">
+                                    <i class="mdi mdi-pill"></i>
+                                </span>
+                            </div>
+                            <p class="text-muted">Henüz ilaç eklenmemiş. "İlaç Ekle" butonuna tıklayarak başlayın.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="header-title">İşlemler</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="mdi mdi-content-save me-1"></i> Reçeteyi Kaydet
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="mdi mdi-arrow-left me-1"></i> Geri Dön
+                            </a>
+                        </div>
+
+                        <hr />
+                        <h6>Reçete Özeti</h6>
+                        <div class="text-muted">
+                            <small>
+                                <strong>Toplam İlaç:</strong> <span id="totalMedications">0</span><br />
+                                <strong>Tarih:</strong> @DateTime.Now.ToString("dd.MM.yyyy")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- İlaç Template -->
+<div id="medicationTemplate" style="display: none;">
+    <div class="medication-item border rounded p-3 mb-3">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">İlaç *</label>
+                    <select name="Medications[INDEX].MedicationId" class="form-control medication-select" required>
+                        <option value="">İlaç Seçiniz</option>
+                        @if (medications != null)
+                        {
+                            @foreach (var medication in medications)
+                            {
+                                <option value="@medication.Id" data-dosage="@medication.Dosage" data-unit="@medication.Unit" data-instructions="@medication.Instructions">
+                                    @medication.Name (@medication.Dosage @medication.Unit) - Stok: @medication.StockQuantity
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Doz *</label>
+                    <input name="Medications[INDEX].Dosage" type="text" class="form-control" placeholder="1 tablet" required />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="form-label">Sıklık *</label>
+                    <input name="Medications[INDEX].Frequency" type="text" class="form-control" placeholder="Günde 3 kez" required />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="form-label">Süre *</label>
+                    <input name="Medications[INDEX].Duration" type="text" class="form-control" placeholder="7 gün" required />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="form-label">Miktar *</label>
+                    <input name="Medications[INDEX].Quantity" type="number" class="form-control" placeholder="14" min="1" required />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <div class="mb-3">
+                    <label class="form-label">Kullanım Talimatları</label>
+                    <input name="Medications[INDEX].Instructions" type="text" class="form-control" placeholder="Yemeklerden sonra alınız" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="mb-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-danger w-100" onclick="removeMedication(this)">
+                        <i class="mdi mdi-delete"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let medicationIndex = 0;
+
+        function addMedication() {
+            const template = document.getElementById('medicationTemplate').innerHTML;
+            const container = document.getElementById('medicationsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            const newMedication = template.replace(/INDEX/g, medicationIndex);
+            container.insertAdjacentHTML('beforeend', newMedication);
+            
+            medicationIndex++;
+            emptyState.style.display = 'none';
+            updateMedicationCount();
+        }
+
+        function removeMedication(button) {
+            const container = document.getElementById('medicationsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            button.closest('.medication-item').remove();
+            
+            if (container.children.length === 0) {
+                emptyState.style.display = 'block';
+            }
+            
+            updateMedicationCount();
+        }
+
+        function updateMedicationCount() {
+            const count = document.querySelectorAll('.medication-item').length;
+            document.getElementById('totalMedications').textContent = count;
+        }
+
+        // İlaç seçildiğinde otomatik doldurma
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('medication-select')) {
+                const option = e.target.selectedOptions[0];
+                const container = e.target.closest('.medication-item');
+                
+                if (option.value) {
+                    const dosage = option.getAttribute('data-dosage');
+                    const instructions = option.getAttribute('data-instructions');
+                    
+                    if (dosage) {
+                        container.querySelector('input[name*="Dosage"]').value = dosage;
+                    }
+                    if (instructions) {
+                        container.querySelector('input[name*="Instructions"]').value = instructions;
+                    }
+                }
+            }
+        });
+
+        // Sayfa yüklendiğinde en az bir ilaç ekle
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.querySelectorAll('.medication-item').length === 0) {
+                addMedication();
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .medication-item {
+            background: #f8f9fa;
+        }
+        .medication-item:hover {
+            background: #e9ecef;
+        }
+    </style>
+}

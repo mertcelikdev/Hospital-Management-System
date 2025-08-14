@@ -1,56 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
+using HospitalManagementSystem.Services.Interfaces;
 using HospitalManagementSystem.Models;
-using HospitalManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using HospitalManagementSystem.Attributes;
+using TaskStatus = HospitalManagementSystem.Models.TaskStatus;
 
 namespace HospitalManagementSystem.Controllers
 {
-    [AuthorizeRole("Admin", "Doctor", "Nurse")]
+    [Authorize]
+    [RequirePermission("CanManageNurseTasks")]
     public class NurseTaskController : Controller
     {
-        private readonly NurseTaskService _nurseTaskService;
+        private readonly INurseTaskService _nurseTaskService;
         private readonly IUserService _userService;
+        private readonly IPatientService _patientService;
 
-        public NurseTaskController(NurseTaskService nurseTaskService, IUserService userService)
+        public NurseTaskController(
+            INurseTaskService nurseTaskService,
+            IUserService userService,
+            IPatientService patientService)
         {
             _nurseTaskService = nurseTaskService;
             _userService = userService;
+            _patientService = patientService;
         }
 
-        // Hemşire görevleri listesi
         public async Task<IActionResult> Index()
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userRole))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            List<NurseTask> tasks;
-
-            switch (userRole)
-            {
-                case "Admin":
-                    tasks = await _nurseTaskService.GetAllTasksAsync();
-                    break;
-                case "Doctor":
-                    tasks = await _nurseTaskService.GetTasksByDoctorIdAsync(userId);
-                    break;
-                case "Nurse":
-                    tasks = await _nurseTaskService.GetTasksByNurseIdAsync(userId);
-                    break;
-                default:
-                    tasks = new List<NurseTask>();
-                    break;
-            }
-
-            ViewBag.UserRole = userRole;
+            var tasks = await _nurseTaskService.GetAllTasksAsync();
             return View(tasks);
         }
 
-        // Görev detayları
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -58,10 +38,7 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var task = await _nurseTaskService.GetTaskByIdAsync(id, userId!, userRole!);
+            var task = await _nurseTaskService.GetTaskByIdAsync(id);
             if (task == null)
             {
                 return NotFound();
@@ -70,45 +47,32 @@ namespace HospitalManagementSystem.Controllers
             return View(task);
         }
 
-        // Yeni görev oluşturma formu (Admin, Doctor)
-        [AuthorizeRole("Admin", "Doctor")]
         public async Task<IActionResult> Create()
         {
-            var nurses = await _userService.GetUsersByRoleAsync("Nurse");
-            var patients = await _userService.GetUsersByRoleAsync("Patient");
-            
-            ViewBag.Nurses = nurses;
-            ViewBag.Patients = patients;
+            ViewBag.Nurses = await _userService.GetUsersByRoleAsync(Role.Nurse.ToString());
+            ViewBag.Patients = await _patientService.GetAllPatientsAsync();
             return View();
         }
 
-        // Yeni görev oluşturma POST (Admin, Doctor)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AuthorizeRole("Admin", "Doctor")]
         public async Task<IActionResult> Create(NurseTask task)
         {
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                task.Id = null; // MongoDB otomatik ID oluşturacak
                 task.CreatedAt = DateTime.UtcNow;
-                task.Status = Models.TaskStatus.Beklemede;
-                
+                task.UpdatedAt = DateTime.UtcNow;
+                task.Status = TaskStatus.Beklemede;
                 await _nurseTaskService.CreateTaskAsync(task);
-                TempData["SuccessMessage"] = "Görev başarıyla oluşturuldu.";
+                TempData["SuccessMessage"] = "Nurse task created successfully.";
                 return RedirectToAction(nameof(Index));
             }
-
-            var nurses = await _userService.GetUsersByRoleAsync("Nurse");
-            var patients = await _userService.GetUsersByRoleAsync("Patient");
             
-            ViewBag.Nurses = nurses;
-            ViewBag.Patients = patients;
+            ViewBag.Nurses = await _userService.GetUsersByRoleAsync(Role.Nurse.ToString());
+            ViewBag.Patients = await _patientService.GetAllPatientsAsync();
             return View(task);
         }
 
-        // Görev düzenleme formu
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -116,30 +80,17 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var task = await _nurseTaskService.GetTaskByIdAsync(id, userId!, userRole!);
+            var task = await _nurseTaskService.GetTaskByIdAsync(id);
             if (task == null)
             {
                 return NotFound();
             }
 
-            // Sadece hemşire kendi görevini düzenleyebilir veya admin/doktor tüm görevleri
-            if (userRole == "Nurse" && task.AssignedToNurseId != userId)
-            {
-                return Forbid();
-            }
-
-            var nurses = await _userService.GetUsersByRoleAsync("Nurse");
-            var patients = await _userService.GetUsersByRoleAsync("Patient");
-            
-            ViewBag.Nurses = nurses;
-            ViewBag.Patients = patients;
+            ViewBag.Nurses = await _userService.GetUsersByRoleAsync(Role.Nurse.ToString());
+            ViewBag.Patients = await _patientService.GetAllPatientsAsync();
             return View(task);
         }
 
-        // Görev düzenleme POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, NurseTask task)
@@ -151,125 +102,35 @@ namespace HospitalManagementSystem.Controllers
 
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                var userRole = HttpContext.Session.GetString("UserRole");
-
-                var success = await _nurseTaskService.UpdateTaskAsync(id, task, userId!, userRole!);
-                if (success)
-                {
-                    TempData["SuccessMessage"] = "Görev başarıyla güncellendi.";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Görev güncelleme yetkisi yok.";
-                }
+                task.UpdatedAt = DateTime.UtcNow;
+                await _nurseTaskService.UpdateTaskAsync(id, task);
+                TempData["SuccessMessage"] = "Nurse task updated successfully.";
+                return RedirectToAction(nameof(Index));
             }
-
-            var nurses = await _userService.GetUsersByRoleAsync("Nurse");
-            var patients = await _userService.GetUsersByRoleAsync("Patient");
             
-            ViewBag.Nurses = nurses;
-            ViewBag.Patients = patients;
+            ViewBag.Nurses = await _userService.GetUsersByRoleAsync(Role.Nurse.ToString());
+            ViewBag.Patients = await _patientService.GetAllPatientsAsync();
             return View(task);
         }
 
-        // Görev durumu güncelleme
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(string id, Models.TaskStatus status, string? notes)
+        public async Task<IActionResult> UpdateStatus(string id, TaskStatus status)
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var success = await _nurseTaskService.UpdateTaskStatusAsync(id, status, userId!, userRole!, notes);
-            
-            if (success)
-            {
-                return Json(new { success = true, message = "Görev durumu güncellendi" });
-            }
-            else
-            {
-                return Json(new { success = false, message = "Görev durumu güncellenemedi" });
-            }
+            await _nurseTaskService.UpdateTaskStatusAsync(id, status);
+            return Json(new { success = true });
         }
 
-        // Görev silme (Admin)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [AuthorizeRole("Admin")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> GetTasksByNurse(string nurseId)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                return NotFound();
-            }
-
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var success = await _nurseTaskService.DeleteTaskAsync(id, userId!, userRole!);
-            if (success)
-            {
-                TempData["SuccessMessage"] = "Görev başarıyla silindi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Görev silme yetkisi yok.";
-            }
-
-            return RedirectToAction(nameof(Index));
+            var tasks = await _nurseTaskService.GetTasksByNurseIdAsync(nurseId);
+            return Json(tasks);
         }
 
-        // Hemşire için görevler (Nurse)
-        [AuthorizeRole("Nurse")]
-        public async Task<IActionResult> MyTasks()
+        public async Task<IActionResult> GetTasksByPatient(string patientId)
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var tasks = await _nurseTaskService.GetTasksByNurseIdAsync(userId!);
-            return View("Index", tasks);
-        }
-
-        // Doktor için oluşturduğu görevler (Doctor)
-        [AuthorizeRole("Doctor")]
-        public async Task<IActionResult> MyCreatedTasks()
-        {
-            var userId = HttpContext.Session.GetString("UserId");
-            var tasks = await _nurseTaskService.GetTasksByDoctorIdAsync(userId!);
-            return View("Index", tasks);
-        }
-
-        // Görev filtreleme
-        public async Task<IActionResult> FilterTasks(Models.TaskStatus? status, TaskPriority? priority, string? nurseId)
-        {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            List<NurseTask> tasks = userRole switch
-            {
-                "Admin" => await _nurseTaskService.GetAllTasksAsync(),
-                "Doctor" => await _nurseTaskService.GetTasksByDoctorIdAsync(userId!),
-                "Nurse" => await _nurseTaskService.GetTasksByNurseIdAsync(userId!),
-                _ => new List<NurseTask>()
-            };
-
-            // Filtreleme
-            if (status.HasValue)
-            {
-                tasks = tasks.Where(t => t.Status == status.Value).ToList();
-            }
-
-            if (priority.HasValue)
-            {
-                tasks = tasks.Where(t => t.Priority == priority.Value).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(nurseId))
-            {
-                tasks = tasks.Where(t => t.AssignedToNurseId == nurseId).ToList();
-            }
-
-            ViewBag.UserRole = userRole;
-            return View("Index", tasks);
+            var tasks = await _nurseTaskService.GetTasksByPatientIdAsync(patientId);
+            return Json(tasks);
         }
     }
 }
+

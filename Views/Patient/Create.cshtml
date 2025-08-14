@@ -1,0 +1,228 @@
+@model HospitalManagementSystem.DTOs.CreatePatientDto
+@{
+    ViewData["Title"] = "Yeni Hasta Kaydı";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Yeni Hasta Kaydı
+                    </h3>
+                </div>
+                <form asp-action="Create" method="post">
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: none;"></div>
+                        
+                        <div class="row">
+                            <!-- Kişisel Bilgiler -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Kişisel Bilgiler</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="FirstName" class="control-label"></label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="LastName" class="control-label"></label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="TcNo" class="control-label"></label>
+                                    <input asp-for="TcNo" class="form-control" maxlength="11" />
+                                    <span asp-validation-for="TcNo" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="DateOfBirth" class="control-label"></label>
+                                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Gender" class="control-label"></label>
+                                    <select asp-for="Gender" class="form-control">
+                                        <option value="">Seçiniz...</option>
+                                        <option value="Male">Erkek</option>
+                                        <option value="Female">Kadın</option>
+                                    </select>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- İletişim Bilgileri -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">İletişim Bilgileri</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="PhoneNumber" class="control-label"></label>
+                                    <input asp-for="PhoneNumber" class="form-control" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Email" class="control-label"></label>
+                                    <input asp-for="Email" class="form-control" type="email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="Address" class="control-label"></label>
+                                    <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="BloodType" class="control-label"></label>
+                                    <select asp-for="BloodType" class="form-control">
+                                        <option value="">Seçiniz...</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                    <span asp-validation-for="BloodType" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Acil Durum Bilgileri -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Acil Durum İletişim</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="EmergencyContactName" class="control-label"></label>
+                                    <input asp-for="EmergencyContactName" class="form-control" />
+                                    <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="EmergencyContactPhone" class="control-label"></label>
+                                    <input asp-for="EmergencyContactPhone" class="form-control" />
+                                    <span asp-validation-for="EmergencyContactPhone" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Sigorta Bilgileri -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Sigorta Bilgileri</h5>
+                                
+                                <div class="form-group">
+                                    <label asp-for="InsuranceNumber" class="control-label"></label>
+                                    <input asp-for="InsuranceNumber" class="form-control" />
+                                    <span asp-validation-for="InsuranceNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tıbbi Bilgiler -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">Tıbbi Bilgiler</h5>
+                                
+                                <div class="form-group">
+                                    <label for="allergiesInput">Alerjiler</label>
+                                    <input type="text" id="allergiesInput" class="form-control" placeholder="Alerjileri virgülle ayırarak yazın" />
+                                    <small class="form-text text-muted">Örnek: Polen, Penisilin, Fıstık</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="chronicDiseasesInput">Kronik Hastalıklar</label>
+                                    <input type="text" id="chronicDiseasesInput" class="form-control" placeholder="Kronik hastalıkları virgülle ayırarak yazın" />
+                                    <small class="form-text text-muted">Örnek: Diyabet, Hipertansiyon, Astım</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="currentMedicationsInput">Mevcut İlaçlar</label>
+                                    <input type="text" id="currentMedicationsInput" class="form-control" placeholder="Kullandığı ilaçları virgülle ayırarak yazın" />
+                                    <small class="form-text text-muted">Örnek: Aspirin, Metformin, Ventolin</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-12 text-right">
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> İptal
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Kaydet
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // TC No validation
+            $('#TcNo').on('input', function() {
+                var tcNo = $(this).val();
+                if (tcNo.length > 11) {
+                    $(this).val(tcNo.substring(0, 11));
+                }
+                // Only allow numbers
+                $(this).val($(this).val().replace(/[^0-9]/g, ''));
+            });
+
+            // Phone number formatting
+            $('#PhoneNumber').on('input', function() {
+                var phone = $(this).val().replace(/[^0-9]/g, '');
+                $(this).val(phone);
+            });
+
+            // Convert comma-separated inputs to arrays before submit
+            $('form').on('submit', function() {
+                var allergies = $('#allergiesInput').val().split(',').map(s => s.trim()).filter(s => s.length > 0);
+                var chronicDiseases = $('#chronicDiseasesInput').val().split(',').map(s => s.trim()).filter(s => s.length > 0);
+                var currentMedications = $('#currentMedicationsInput').val().split(',').map(s => s.trim()).filter(s => s.length > 0);
+                
+                // Create hidden inputs for arrays
+                allergies.forEach(function(allergy, index) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'Allergies[' + index + ']',
+                        value: allergy
+                    }).appendTo(this);
+                });
+                
+                chronicDiseases.forEach(function(disease, index) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'ChronicDiseases[' + index + ']',
+                        value: disease
+                    }).appendTo(this);
+                });
+                
+                currentMedications.forEach(function(medication, index) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'CurrentMedications[' + index + ']',
+                        value: medication
+                    }).appendTo(this);
+                });
+            });
+        });
+    </script>
+}

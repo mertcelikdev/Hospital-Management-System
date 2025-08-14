@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HospitalManagementSystem.Models
 {
+    [BsonIgnoreExtraElements] // Eski belgelerde kalan IsActive vb. alanları yok say
     public class Patient
     {
         [BsonId]
@@ -25,6 +26,13 @@ namespace HospitalManagementSystem.Models
         [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Kimlik No sadece sayılardan oluşmalıdır.")]
         [Display(Name = "TC Kimlik No")]
         public string IdentityNumber { get; set; } = string.Empty;
+
+        // TcNo alias for compatibility
+        public string TcNo 
+        { 
+            get => IdentityNumber; 
+            set => IdentityNumber = value; 
+        }
 
         [Required(ErrorMessage = "Doğum tarihi gereklidir.")]
         [Display(Name = "Doğum Tarihi")]
@@ -64,6 +72,14 @@ namespace HospitalManagementSystem.Models
         [Display(Name = "Kronik Hastalıklar")]
         public string? ChronicDiseases { get; set; }
 
+        [StringLength(500, ErrorMessage = "Mevcut ilaçlar en fazla 500 karakter olabilir.")]
+        [Display(Name = "Mevcut İlaçlar")]
+        public string? CurrentMedications { get; set; }
+
+        [StringLength(50, ErrorMessage = "Sigorta numarası en fazla 50 karakter olabilir.")]
+        [Display(Name = "Sigorta Numarası")]
+        public string? InsuranceNumber { get; set; }
+
         [StringLength(100, ErrorMessage = "Acil durum kişisi adı en fazla 100 karakter olabilir.")]
         [Display(Name = "Acil Durum Kişisi")]
         public string? EmergencyContactName { get; set; }
@@ -76,8 +92,7 @@ namespace HospitalManagementSystem.Models
         [Display(Name = "Yakınlık")]
         public string? EmergencyContactRelation { get; set; }
 
-        [Display(Name = "Aktif")]
-        public bool IsActive { get; set; } = true;
+    // IsActive kaldırıldı (kullanıcı talebi)
 
         [Display(Name = "Kayıt Tarihi")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

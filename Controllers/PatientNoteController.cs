@@ -1,49 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
+using HospitalManagementSystem.Services.Interfaces;
 using HospitalManagementSystem.Models;
-using HospitalManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using HospitalManagementSystem.Attributes;
 
 namespace HospitalManagementSystem.Controllers
 {
-    [AuthorizeRole("Admin", "Doctor", "Nurse")]
+    [Authorize]
+    [RequirePermission("CanManagePatientNotes")]
     public class PatientNoteController : Controller
     {
-        private readonly PatientNoteService _patientNoteService;
+        private readonly IPatientNoteService _patientNoteService;
+        private readonly IPatientService _patientService;
         private readonly IUserService _userService;
 
-        public PatientNoteController(PatientNoteService patientNoteService, IUserService userService)
+        public PatientNoteController(
+            IPatientNoteService patientNoteService,
+            IPatientService patientService,
+            IUserService userService)
         {
             _patientNoteService = patientNoteService;
+            _patientService = patientService;
             _userService = userService;
         }
 
-        // Hasta notları listesi
-        public async Task<IActionResult> Index(string? patientId)
+        public async Task<IActionResult> Index()
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userRole))
+            try
             {
-                return RedirectToAction("Login", "Auth");
+                var notes = await _patientNoteService.GetAllNotesAsync();
+                return View(notes);
             }
-
-            List<PatientNote> notes;
-
-            if (!string.IsNullOrEmpty(patientId))
+            catch (Exception ex)
             {
-                notes = await _patientNoteService.GetNotesByPatientAndCreatorAsync(patientId, userId, userRole);
+                TempData["Error"] = "Hasta notları yüklenirken hata oluştu: " + ex.Message;
+                return View(new List<PatientNote>());
             }
-            else
-            {
-                notes = await _patientNoteService.GetNotesByCreatorAsync(userId, userRole);
-            }
-
-            ViewBag.PatientId = patientId;
-            return View(notes);
         }
 
-        // Hasta notu detayları
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -51,56 +45,87 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
-            if (note == null)
+            try
             {
-                return NotFound();
+                var note = await _patientNoteService.GetNoteByIdAsync(id);
+                if (note == null)
+                {
+                    return NotFound();
+                }
+
+                var patient = await _patientService.GetPatientByIdAsync(note.PatientId);
+                var doctor = await _userService.GetUserByIdAsync(note.CreatedBy);
+
+                ViewBag.Patient = patient;
+                ViewBag.Doctor = doctor;
+
+                return View(note);
             }
-
-            return View(note);
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hasta notu detayları yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // Yeni hasta notu oluşturma formu
-        public async Task<IActionResult> Create(string? patientId)
+        public async Task<IActionResult> Create()
         {
-            ViewBag.PatientId = patientId;
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
-            return View();
+            try
+            {
+                var patients = await _patientService.GetAllPatientsAsync();
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
+
+                ViewBag.Patients = patients;
+                ViewBag.Doctors = doctors;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hasta notu oluşturma sayfası yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // Yeni hasta notu oluşturma POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PatientNote note)
         {
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                var userRole = HttpContext.Session.GetString("UserRole");
-
-                note.Id = null; // MongoDB otomatik ID oluşturacak
-                note.CreatedAt = DateTime.UtcNow;
-                note.CreatedByUserName = HttpContext.Session.GetString("UserName") ?? "";
-                
-                await _patientNoteService.CreateNoteAsync(note);
-                TempData["SuccessMessage"] = "Hasta notu başarıyla oluşturuldu.";
-                
-                if (!string.IsNullOrEmpty(note.PatientId))
+                try
                 {
-                    return RedirectToAction(nameof(Index), new { patientId = note.PatientId });
+                    note.Id = Guid.NewGuid().ToString();
+                    note.CreatedAt = DateTime.Now;
+                    note.CreatedBy = HttpContext.Session.GetString("UserId") ?? note.CreatedBy;
+
+                    await _patientNoteService.CreateNoteAsync(note);
+                    TempData["Success"] = "Hasta notu başarıyla oluşturuldu.";
+                    return RedirectToAction(nameof(Index));
                 }
-                
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    TempData["Error"] = "Hasta notu oluşturulurken hata oluştu: " + ex.Message;
+                }
             }
 
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
+            // Hata durumunda dropdown listelerini yeniden yükle
+            try
+            {
+                var patients = await _patientService.GetAllPatientsAsync();
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
+
+                ViewBag.Patients = patients;
+                ViewBag.Doctors = doctors;
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Dropdown listeler yüklenirken hata oluştu: " + ex.Message;
+            }
+
             return View(note);
         }
 
-        // Hasta notu düzenleme formu
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -108,21 +133,29 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
-            if (note == null)
+            try
             {
-                return NotFound();
-            }
+                var note = await _patientNoteService.GetNoteByIdAsync(id);
+                if (note == null)
+                {
+                    return NotFound();
+                }
 
-            ViewBag.Note = note;
-            await PopulateCreateViewBagsAsync(userRole!);
-            return View(note);
+                var patients = await _patientService.GetAllPatientsAsync();
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
+
+                ViewBag.Patients = patients;
+                ViewBag.Doctors = doctors;
+
+                return View(note);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hasta notu yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        // Hasta notu düzenleme POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, PatientNote note)
@@ -134,28 +167,36 @@ namespace HospitalManagementSystem.Controllers
 
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                var userRole = HttpContext.Session.GetString("UserRole");
-
-                var success = await _patientNoteService.UpdateNoteAsync(id, note, userId!, userRole!);
-                if (success)
+                try
                 {
-                    TempData["SuccessMessage"] = "Hasta notu başarıyla güncellendi.";
+                    note.UpdatedAt = DateTime.Now;
+                    await _patientNoteService.UpdateNoteAsync(id, note);
+                    TempData["Success"] = "Hasta notu başarıyla güncellendi.";
                     return RedirectToAction(nameof(Index));
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Nota güncelleme yetkisi yok.";
+                    TempData["Error"] = "Hasta notu güncellenirken hata oluştu: " + ex.Message;
                 }
             }
 
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
+            // Hata durumunda dropdown listelerini yeniden yükle
+            try
+            {
+                var patients = await _patientService.GetAllPatientsAsync();
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
+
+                ViewBag.Patients = patients;
+                ViewBag.Doctors = doctors;
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Dropdown listeler yüklenirken hata oluştu: " + ex.Message;
+            }
+
             return View(note);
         }
 
-        // Hasta notu silme
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -163,91 +204,106 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            try
+            {
+                var note = await _patientNoteService.GetNoteByIdAsync(id);
+                if (note == null)
+                {
+                    return NotFound();
+                }
 
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
-            if (note == null)
-            {
-                return NotFound();
-            }
+                var patient = await _patientService.GetPatientByIdAsync(note.PatientId);
+                var doctor = await _userService.GetUserByIdAsync(note.CreatedBy);
 
-            var success = await _patientNoteService.DeleteNoteAsync(id, userId!, userRole!);
-            if (success)
-            {
-                TempData["SuccessMessage"] = "Hasta notu başarıyla silindi.";
+                ViewBag.Patient = patient;
+                ViewBag.Doctor = doctor;
+
+                return View(note);
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Nota silme yetkisi yok.";
+                TempData["Error"] = "Hasta notu yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            try
+            {
+                await _patientNoteService.DeleteNoteAsync(id);
+                TempData["Success"] = "Hasta notu başarıyla silindi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hasta notu silinirken hata oluştu: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // Hasta notu arama
-        [HttpGet]
-        public async Task<IActionResult> Search(string searchTerm, string? patientId)
-        {
-            if (string.IsNullOrEmpty(searchTerm))
-            {
-                return RedirectToAction(nameof(Index), new { patientId });
-            }
-
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
-
-            var notes = await _patientNoteService.SearchNotesAsync(searchTerm, userId!, userRole!, patientId);
-
-            ViewBag.SearchTerm = searchTerm;
-            ViewBag.PatientId = patientId;
-            return View("Index", notes);
-        }
-
-        // Hasta seçim için hastalar listesi
-        public async Task<IActionResult> SelectPatient()
-        {
-            var patients = await _userService.GetUsersByRoleAsync("Patient");
-            return View(patients);
-        }
-
-        // Hastaya ait notlar
-        public async Task<IActionResult> PatientNotes(string patientId)
+        public async Task<IActionResult> ByPatient(string patientId)
         {
             if (string.IsNullOrEmpty(patientId))
             {
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            try
+            {
+                var notes = await _patientNoteService.GetNotesByPatientIdAsync(patientId);
+                var patient = await _patientService.GetPatientByIdAsync(patientId);
 
-            var notes = await _patientNoteService.GetNotesByPatientAndCreatorAsync(patientId, userId!, userRole!);
-            var patient = await _userService.GetUserByIdAsync(patientId);
+                ViewBag.Patient = patient;
+                ViewBag.NotesCount = await _patientNoteService.GetNotesCountByPatientAsync(patientId);
 
-            ViewBag.Patient = patient;
-            return View("Index", notes);
+                return View(notes);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hasta notları yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
-        private async Task PopulateCreateViewBagsAsync(string userRole)
+        public async Task<IActionResult> ByDoctor(string doctorId)
         {
-            // Kullanıcının rolüne göre hasta listesi
-            switch (userRole)
+            if (string.IsNullOrEmpty(doctorId))
             {
-                case "Admin":
-                    ViewBag.Patients = await _userService.GetUsersByRoleAsync("Patient");
-                    break;
-                case "Doctor":
-                    // Doktor sadece kendi hastalarını görebilir
-                    ViewBag.Patients = await _userService.GetUsersByRoleAsync("Patient");
-                    break;
-                case "Nurse":
-                    // Hemşire sadece kendi hastalarını görebilir
-                    ViewBag.Patients = await _userService.GetUsersByRoleAsync("Patient");
-                    break;
-                default:
-                    ViewBag.Patients = new List<User>();
-                    break;
+                return NotFound();
+            }
+
+            try
+            {
+                var notes = await _patientNoteService.GetNotesByDoctorIdAsync(doctorId);
+                var doctor = await _userService.GetUserByIdAsync(doctorId);
+
+                ViewBag.Doctor = doctor;
+                ViewBag.NotesCount = await _patientNoteService.GetNotesCountByDoctorAsync(doctorId);
+
+                return View(notes);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Doktor notları yüklenirken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Search(string searchTerm)
+        {
+            try
+            {
+                var notes = await _patientNoteService.SearchNotesAsync(searchTerm ?? "");
+                return View("Index", notes);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Arama yapılırken hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

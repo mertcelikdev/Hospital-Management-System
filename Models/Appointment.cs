@@ -4,40 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HospitalManagementSystem.Models
 {
-    public enum AppointmentStatus
-    {
-        Planlandı,     // Scheduled
-        Scheduled = Planlandı,
-        Onaylandı,     // Confirmed  
-        Confirmed = Onaylandı,
-        Devam,         // InProgress
-        InProgress = Devam,
-        Tamamlandı,    // Completed
-        Completed = Tamamlandı,
-        İptalEdildi,   // Cancelled
-        Cancelled = İptalEdildi,
-        Gelmedi,       // NoShow
-        NoShow = Gelmedi
-    }
-
-    public enum AppointmentType
-    {
-        Muayene,       // Consultation
-        Consultation = Muayene,
-        Kontrol,       // FollowUp
-        FollowUp = Kontrol,
-        Acil,          // Emergency
-        Emergency = Acil,
-        Ameliyat,      // Surgery
-        Surgery = Ameliyat,
-        İnceleme,      // Examination
-        Examination = İnceleme,
-        CheckUp,       // Checkup
-        Checkup = CheckUp,
-        Tedavi,        // Treatment
-        Treatment = Tedavi
-    }
-
+    [BsonIgnoreExtraElements]
     public class Appointment
     {
         [BsonId]
@@ -53,20 +20,22 @@ namespace HospitalManagementSystem.Models
         [Required]
         public DateTime AppointmentDate { get; set; }
 
-        [Required]
-        public AppointmentStatus Status { get; set; } = AppointmentStatus.Planlandı;
+    [Required]
+    public string Status { get; set; } = "Planlandı";
 
-        [Required]
-        public AppointmentType Type { get; set; }
+    [Required]
+    public string Type { get; set; } = "Muayene";
 
         public string Notes { get; set; } = string.Empty;
+
+        public string Department { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
 
-        // Additional properties for compatibility
         public string CreatedBy { get; set; } = string.Empty;
+        
         public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(30);
 
         // Navigation properties
@@ -75,5 +44,19 @@ namespace HospitalManagementSystem.Models
 
         [BsonIgnore]
         public User? Doctor { get; set; }
+
+        // Soft delete support fields
+        public DateTime? DeletedAt { get; set; }
+        public string? DeletedBy { get; set; }
+
+        // Helper properties
+        [BsonIgnore]
+        public bool IsDeleted => DeletedAt.HasValue;
+
+        [BsonIgnore]
+        public string FormattedDate => AppointmentDate.ToString("dd.MM.yyyy");
+
+        [BsonIgnore]
+        public string FormattedTime => AppointmentDate.ToString("HH:mm");
     }
 }

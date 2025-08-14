@@ -1,0 +1,151 @@
+@model List<HospitalManagementSystem.DTOs.PatientDto>
+@{
+    ViewData["Title"] = "Hasta Listesi";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-users mr-2"></i>
+                        Hasta Listesi
+                    </h3>
+                    <div>
+                        <a href="@Url.Action("Create")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Yeni Hasta
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Search -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="liveSearchInput" maxlength="11" class="form-control" placeholder="TC Kimlik No ile arayın..." autocomplete="off" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Sadece TC ile arama (en az 3 hane, sadece rakam).</small>
+                        </div>
+                    </div>
+
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="patientTable">
+                                <thead>
+                                    <tr>
+                                        <th>Ad Soyad</th>
+                                        <th>TC No</th>
+                                        <th>Telefon</th>
+                                        <th>E-posta</th>
+                                        <th>Yaş</th>
+                                        <th>Kan Grubu</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var patient in Model)
+                                    {
+                                        <tr class="patient-row">
+                                            <td><strong>@patient.FullName</strong></td>
+                                            <td>@patient.TcNo</td>
+                                            <td>@patient.PhoneNumber</td>
+                                            <td>@patient.Email</td>
+                                            <td>@patient.Age</td>
+                                            <td class="text-dark fw-semibold">@patient.BloodType</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("Details", new { id = patient.Id })" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
+                                                    <a href="@Url.Action("Edit", new { id = patient.Id })" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
+                                                    <a href="@Url.Action("MedicalHistory", new { id = patient.Id })" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
+                                                    <a href="@Url.Action("Delete", new { id = patient.Id })" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchQuery as string))
+                            {
+                                <text>Arama kriterlerinize uygun hasta bulunamadı.</text>
+                            }
+                            else
+                            {
+                                <text>Henüz hasta kaydı bulunmuyor.</text>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const input = document.getElementById('liveSearchInput');
+        const tableBody = document.querySelector('#patientTable tbody');
+        let typingTimer; let lastQuery = '';
+        input.addEventListener('keyup', function(){
+            clearTimeout(typingTimer);
+            const val = input.value.trim();
+            if(val === lastQuery) return;
+            typingTimer = setTimeout(()=> doSearch(val), 300);
+        });
+        input.addEventListener('change', ()=> doSearch(input.value.trim()));
+
+        async function doSearch(q){
+            lastQuery = q;
+            if(q.length>0 && (!/^\d+$/.test(q) || q.length<3)){
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">En az 3 haneli rakam girin</td></tr>';
+                return;
+            }
+            try {
+                const resp = await fetch(`/Patient/Search?query=${encodeURIComponent(q)}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }});
+                const json = await resp.json();
+                if(!json.success) return;
+                renderRows(json.data);
+            } catch(e){ console.error(e); }
+        }
+
+        function renderRows(list){
+            tableBody.innerHTML = '';
+            if(!list || list.length===0){
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Kayıt bulunamadı</td></tr>';
+                return;
+            }
+            list.forEach(p=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${escapeHtml(p.fullName|| (p.firstName+" "+p.lastName))}</strong></td>
+                    <td>${p.tcNo||''}</td>
+                    <td>${p.phoneNumber||''}</td>
+                    <td>${p.email||''}</td>
+                    <td>${calcAge(p.dateOfBirth)}</td>
+                    <td class='text-dark fw-semibold'>${p.bloodType||''}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="/Patient/Details/${p.id}" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
+                            <a href="/Patient/Edit/${p.id}" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="/Patient/MedicalHistory/${p.id}" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
+                            <a href="/Patient/Delete/${p.id}" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>`;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function calcAge(d){ if(!d) return ''; const date = new Date(d); if(isNaN(date)) return ''; const now=new Date(); let age=now.getFullYear()-date.getFullYear(); const m=now.getMonth()-date.getMonth(); if(m<0 || (m===0 && now.getDate()<date.getDate())) age--; return age; }
+        function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>"] /g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',' ':' '})[c]); }
+    </script>
+}

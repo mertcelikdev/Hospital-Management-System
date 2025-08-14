@@ -5,9 +5,33 @@
     var userRole = Context.Session.GetString("UserRole");
     var canEdit = userRole == "Doctor" || userRole == "Staff";
     var canCancel = userRole == "Doctor" || userRole == "Staff";
+    var userNameMap = ViewBag.UserNameMap as IDictionary<string,string> ?? new Dictionary<string,string>();
 }
 
 <div class="container-fluid py-4">
+    
+    @if (ViewBag.SerializationError == true)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Veri Uyumsuzluğu Hatası</h4>
+            <p>@ViewBag.ErrorMessage</p>
+            <hr>
+            <p class="mb-0">
+                @if (userRole == "Admin")
+                {
+                    <button type="button" class="btn btn-danger" onclick="clearAllAppointments()">
+                        <i class="fas fa-trash"></i> Şimdi Temizle
+                    </button>
+                }
+                else
+                {
+                    <span>Lütfen sistem yöneticinizle iletişime geçin.</span>
+                }
+            </p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
     <div class="row">
         <!-- Sol Taraf - Filtreler -->
         <div class="col-md-3">
@@ -41,7 +65,7 @@
                             <option value="">Tüm Durumlar</option>
                             <option value="Planlandı">Planlandı</option>
                             <option value="Onaylandı">Onaylandı</option>
-                            <option value="Devam">Devam Ediyor</option>
+                            <option value="DevamEdiyor">Devam Ediyor</option>
                             <option value="Tamamlandı">Tamamlandı</option>
                             <option value="İptalEdildi">İptal Edildi</option>
                             <option value="Gelmedi">Gelmedi</option>
@@ -118,12 +142,20 @@
                     </h2>
                     <p class="text-muted mb-0">Toplam <span id="totalCount">@Model.Count</span> randevu</p>
                 </div>
-                @if (canEdit)
-                {
-                    <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Yeni Randevu
-                    </a>
-                }
+                <div class="d-flex gap-2">
+                    @if (canEdit)
+                    {
+                        <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Yeni Randevu
+                        </a>
+                    }
+                    @if (userRole == "Admin")
+                    {
+                        <button type="button" class="btn btn-danger" onclick="clearAllAppointments()">
+                            <i class="fas fa-trash"></i> Tüm Verileri Temizle
+                        </button>
+                    }
+                </div>
             </div>
 
             <!-- İstatistik Kartları -->
@@ -190,6 +222,7 @@
                                     <th>Departman</th>
                                     <th>Tür</th>
                                     <th>Durum</th>
+                                    <th>Oluşturan</th>
                                     <th>İşlemler</th>
                                 </tr>
                             </thead>
@@ -210,7 +243,10 @@
                                                     </div>
                                                     <div>
                                                         <div class="fw-semibold">@appointment.PatientName</div>
-                                                        <small class="text-muted">ID: @appointment.PatientId</small>
+                                                        @if (!string.IsNullOrWhiteSpace(appointment.PatientTc))
+                                                        {
+                                                            <small class="text-muted">TC: @appointment.PatientTc</small>
+                                                        }
                                                     </div>
                                                 </div>
                                             </td>
@@ -237,7 +273,7 @@
                                                     {
                                                         "Planlandı" => "bg-primary",
                                                         "Onaylandı" => "bg-info", 
-                                                        "Devam" => "bg-warning",
+                                                        "DevamEdiyor" => "bg-warning",
                                                         "Tamamlandı" => "bg-success",
                                                         "İptalEdildi" => "bg-danger",
                                                         "Gelmedi" => "bg-dark",
@@ -245,6 +281,15 @@
                                                     };
                                                 }
                                                 <span class="badge @statusClass">@appointment.Status</span>
+                                            </td>
+                                            <td>
+                                                <div class="small">
+                                                    <div class="fw-semibold">@(string.IsNullOrEmpty(appointment.CreatedByName) ? "Bilinmiyor" : appointment.CreatedByName)</div>
+                                                    @if(!string.IsNullOrEmpty(appointment.CreatedByRole))
+                                                    {
+                                                        <small class="text-muted">@appointment.CreatedByRole</small>
+                                                    }
+                                                </div>
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
@@ -317,6 +362,7 @@
                         </nav>
                         <div>
                             <span class="text-muted" id="paginationInfo">1-25 / 100</span>
+                            <a href="@Url.Action("Deleted","Appointment")" class="ms-3 small text-decoration-none"><i class="fas fa-trash-alt me-1"></i>Silinenler</a>
                         </div>
                     </div>
                 </div>
@@ -328,7 +374,13 @@
 <script>
     // Global variables
     let allAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+    allAppointments = allAppointments.map(a => ({
+        ...a,
+        PatientTc: a.PatientTc || '',
+        CreatedByRole: a.CreatedByRole || ''
+    }));
     let filteredAppointments = [...allAppointments];
+    const userNameMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(userNameMap));
     let currentPage = 1;
     let pageSize = 25;
 
@@ -365,19 +417,22 @@
         filteredAppointments = allAppointments.filter(appointment => {
             const matchesSearch = !search || 
                 appointment.PatientName.toLowerCase().includes(search) ||
+                (appointment.PatientTc && appointment.PatientTc.toLowerCase().includes(search)) ||
                 appointment.DoctorName.toLowerCase().includes(search) ||
                 appointment.PatientId.toLowerCase().includes(search);
                 
-            const matchesStatus = !status || appointment.Status === status;
+         const matchesStatus = !status || appointment.Status === status;
             const matchesDepartment = !department || appointment.Department === department;
             const matchesType = !type || appointment.Type === type;
+         const creatorName = userNameMap[appointment.CreatedBy] || appointment.CreatedBy || '';
+         const matchesSearchCreator = !search || creatorName.toLowerCase().includes(search);
             
             const appointmentDate = new Date(appointment.AppointmentDate);
             const matchesDateFrom = !dateFrom || appointmentDate >= new Date(dateFrom);
             const matchesDateTo = !dateTo || appointmentDate <= new Date(dateTo);
 
-            return matchesSearch && matchesStatus && matchesDepartment && 
-                   matchesType && matchesDateFrom && matchesDateTo;
+         return matchesSearch && matchesStatus && matchesDepartment && 
+             matchesType && matchesDateFrom && matchesDateTo && matchesSearchCreator;
         });
 
         // Sort appointments
@@ -408,6 +463,12 @@
                 break;
             case 'status-asc':
                 filteredAppointments.sort((a, b) => a.Status.localeCompare(b.Status, 'tr'));
+                break;
+            case 'creator-asc':
+                filteredAppointments.sort((a,b)=> (userNameMap[a.CreatedBy]||'').localeCompare(userNameMap[b.CreatedBy]||'', 'tr'));
+                break;
+            case 'creator-desc':
+                filteredAppointments.sort((a,b)=> (userNameMap[b.CreatedBy]||'').localeCompare(userNameMap[a.CreatedBy]||'', 'tr'));
                 break;
         }
     }
@@ -452,7 +513,7 @@
                             </div>
                             <div>
                                 <div class="fw-semibold">${appointment.PatientName}</div>
-                                <small class="text-muted">ID: ${appointment.PatientId}</small>
+                                ${appointment.PatientTc ? `<small class='text-muted'>TC: ${appointment.PatientTc}</small>` : ''}
                             </div>
                         </div>
                     </td>
@@ -475,6 +536,12 @@
                     </td>
                     <td>
                         <span class="badge ${statusClass}">${appointment.Status}</span>
+                    </td>
+                    <td>
+                        <div class="small">
+                            <div class="fw-semibold">${(userNameMap[appointment.CreatedBy] || 'Bilinmiyor')}</div>
+                            ${(appointment.CreatedByRole ? `<small class='text-muted'>${appointment.CreatedByRole}</small>` : '')}
+                        </div>
                     </td>
                     <td>
                         <div class="btn-group" role="group">
@@ -609,30 +676,26 @@
     }
 
     function cancelAppointment(id) {
-        if (confirm('Bu randevuyu iptal etmek istediğinize emin misiniz?')) {
-            fetch(`/Appointment/Cancel/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Update local data
-                    const appointment = allAppointments.find(a => a.Id === id);
-                    if (appointment) {
-                        appointment.Status = 'İptalEdildi';
-                    }
-                    applyFilters();
-                } else {
-                    alert('Randevu iptal edilirken bir hata oluştu.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Bir hata oluştu.');
-            });
-        }
+        if (!confirm('Bu randevuyu iptal etmek istediğinize emin misiniz?')) return;
+        fetch(`/Appointment/SoftDelete/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(r => {
+            if (r.ok) {
+                const appt = allAppointments.find(a => a.Id === id);
+                if (appt) appt.Status = 'İptalEdildi';
+                applyFilters();
+            } else {
+                alert('Randevu iptal edilirken hata.');
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            alert('Sunucu hatası.');
+        });
     }
 
     function exportToExcel() {
@@ -642,6 +705,22 @@
 
     function printTable() {
         window.print();
+    }
+
+    function clearAllAppointments() {
+        if (confirm('TÜM RANDEVU VERİLERİ SİLİNECEK!\n\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("ClearAllAppointments", "Appointment")';
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                form.appendChild(token.cloneNode());
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
 </script>
 

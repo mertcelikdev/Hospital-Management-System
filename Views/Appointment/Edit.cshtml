@@ -1,275 +1,198 @@
 @model Appointment
-
 @{
     ViewData["Title"] = "Randevu Düzenle";
 }
-
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 class="mb-1">
-                        <i class="fas fa-edit text-primary"></i>
-                        Randevu Düzenle
-                    </h2>
+                    <h2 class="mb-1"><i class="fas fa-edit text-primary"></i> Randevu Düzenle</h2>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Appointment")">Randevular</a></li>
-                            <li class="breadcrumb-item"><a href="@Url.Action("Details", "Appointment", new { id = Model.Id })">Detaylar</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index","Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index","Appointment")">Randevular</a></li>
                             <li class="breadcrumb-item active">Düzenle</li>
                         </ol>
                     </nav>
                 </div>
-                <div>
-                    <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Geri Dön
-                    </a>
-                </div>
+                <a href="@Url.Action("Index","Appointment")" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Geri</a>
             </div>
-
             <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar-alt"></i> Randevu Bilgilerini Güncelle
-                    </h5>
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Randevu Bilgileri</h5>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post" id="editForm" novalidate>
+                    <form asp-action="Edit" method="post" id="editForm">
                         <input type="hidden" asp-for="Id" />
-                        <input type="hidden" asp-for="CreatedAt" />
-
                         <div class="row">
-                            <!-- Left Column -->
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label asp-for="PatientId" class="form-label">
-                                        <i class="fas fa-user text-primary"></i> Hasta ID
-                                    </label>
-                                    <input asp-for="PatientId" class="form-control" placeholder="Hasta ID'sini girin">
-                                    <span asp-validation-for="PatientId" class="text-danger"></span>
+                                    <label class="form-label fw-semibold">Hasta</label>
+                                    <div class="border rounded p-2 bg-light d-flex align-items-center" style="min-height:52px;">
+                                        <i class="fas fa-user-injured text-primary me-2"></i>
+                                        @if(ViewBag.EditPatient != null){
+                                            <div>
+                                                <div class="fw-semibold">@ViewBag.EditPatient.FullName</div>
+                                                <small class="text-muted">TC: @ViewBag.EditPatient.IdentityNumber @if(!string.IsNullOrEmpty(ViewBag.EditPatient.Phone)){<text>| @ViewBag.EditPatient.Phone</text>}</small>
+                                            </div>
+                                        } else {
+                                            <div class="text-muted">Hasta bilgisi bulunamadı</div>
+                                        }
+                                    </div>
+                                    <input type="hidden" asp-for="PatientId" />
                                 </div>
-
                                 <div class="mb-3">
-                                    <label asp-for="DoctorId" class="form-label">
-                                        <i class="fas fa-user-md text-success"></i> Doktor ID
-                                    </label>
-                                    <input asp-for="DoctorId" class="form-control" placeholder="Doktor ID'sini girin">
+                                    <label class="form-label fw-semibold">Doktor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-md"></i></span>
+                                        <select asp-for="DoctorId" class="form-select" id="DoctorId">
+                                            <option value="">Doktor seçiniz</option>
+                                            @if (ViewBag.Doctors != null)
+                                            {
+                                                foreach (var d in ViewBag.Doctors)
+                                                {
+                                                    <option value="@d.Id" selected="@(Model.DoctorId==d.Id)">Dr. @d.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
                                     <span asp-validation-for="DoctorId" class="text-danger"></span>
                                 </div>
-
                                 <div class="mb-3">
-                                    <label asp-for="Type" class="form-label">
-                                        <i class="fas fa-stethoscope text-info"></i> Randevu Tipi
-                                    </label>
-                                    <select asp-for="Type" class="form-select">
-                                        <option value="">Randevu tipini seçin</option>
-                                        <option value="@AppointmentType.Consultation">Konsültasyon</option>
-                                        <option value="@AppointmentType.Surgery">Ameliyat</option>
-                                        <option value="@AppointmentType.Emergency">Acil</option>
-                                        <option value="@AppointmentType.Checkup">Kontrol</option>
-                                        <option value="@AppointmentType.Treatment">Tedavi</option>
-                                    </select>
+                                    <label class="form-label fw-semibold">Departman</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                        <select asp-for="Department" class="form-select" id="Department">
+                                            <option value="">Departman seçiniz</option>
+                                            @if (ViewBag.Departments != null)
+                                            {
+                                                foreach (var dept in ViewBag.Departments)
+                                                {
+                                                    <option value="@dept.Name" selected="@(Model.Department==dept.Name)">@dept.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    @if(string.IsNullOrWhiteSpace(Model.Department) && ViewBag.EditDoctor != null){
+                                        <small class="text-success">Otomatik: @ViewBag.EditDoctor.DoctorDepartment ?? @ViewBag.EditDoctor.Specialization</small>
+                                    }
+                                    <span asp-validation-for="Department" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Randevu Türü</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-stethoscope"></i></span>
+                                        <select asp-for="Type" class="form-select" id="Type">
+                                            <option value="Muayene">Muayene</option>
+                                            <option value="Kontrol">Kontrol</option>
+                                            <option value="Acil">Acil</option>
+                                            <option value="Ameliyat">Ameliyat</option>
+                                            <option value="İnceleme">İnceleme</option>
+                                            <option value="CheckUp">CheckUp</option>
+                                            <option value="Tedavi">Tedavi</option>
+                                        </select>
+                                    </div>
                                     <span asp-validation-for="Type" class="text-danger"></span>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Status" class="form-label">
-                                        <i class="fas fa-info-circle text-warning"></i> Durum
-                                    </label>
-                                    <select asp-for="Status" class="form-select">
-                                        <option value="@AppointmentStatus.Scheduled">Planlandı</option>
-                                        <option value="@AppointmentStatus.Completed">Tamamlandı</option>
-                                        <option value="@AppointmentStatus.Cancelled">İptal Edildi</option>
-                                        <option value="@AppointmentStatus.NoShow">Gelmedi</option>
-                                    </select>
-                                    <span asp-validation-for="Status" class="text-danger"></span>
-                                </div>
                             </div>
-
-                            <!-- Right Column -->
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label asp-for="AppointmentDate" class="form-label">
-                                        <i class="fas fa-calendar text-primary"></i> Randevu Tarihi ve Saati
-                                    </label>
-                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control">
-                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                    <label class="form-label fw-semibold">Tarih</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                        <input type="date" class="form-control" id="appointmentDate" />
+                                    </div>
                                 </div>
-
                                 <div class="mb-3">
-                                    <label asp-for="Notes" class="form-label">
-                                        <i class="fas fa-sticky-note text-warning"></i> Notlar
-                                    </label>
-                                    <textarea asp-for="Notes" class="form-control" rows="5" placeholder="Randevu hakkında notlar..."></textarea>
+                                    <label class="form-label fw-semibold">Saat</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                        <select class="form-select" id="appointmentTime">
+                                            <option value="">Saat seçiniz</option>
+                                            <option value="08:00">08:00</option>
+                                            <option value="08:30">08:30</option>
+                                            <option value="09:00">09:00</option>
+                                            <option value="09:30">09:30</option>
+                                            <option value="10:00">10:00</option>
+                                            <option value="10:30">10:30</option>
+                                            <option value="11:00">11:00</option>
+                                            <option value="11:30">11:30</option>
+                                            <option value="12:00">12:00</option>
+                                            <option value="12:30">12:30</option>
+                                            <option value="13:00">13:00</option>
+                                            <option value="13:30">13:30</option>
+                                            <option value="14:00">14:00</option>
+                                            <option value="14:30">14:30</option>
+                                            <option value="15:00">15:00</option>
+                                            <option value="15:30">15:30</option>
+                                            <option value="16:00">16:00</option>
+                                            <option value="16:30">16:30</option>
+                                            <option value="17:00">17:00</option>
+                                            <option value="17:30">17:30</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <input asp-for="AppointmentDate" type="hidden" id="hiddenAppointmentDate" />
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Durum</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-flag"></i></span>
+                                        <select asp-for="Status" class="form-select" id="Status">
+                                            <option value="Planlandı">Planlandı</option>
+                                            <option value="Onaylandı">Onaylandı</option>
+                                            <option value="DevamEdiyor">Devam Ediyor</option>
+                                            <option value="Tamamlandı">Tamamlandı</option>
+                                            <option value="İptalEdildi">İptal Edildi</option>
+                                            <option value="Gelmedi">Gelmedi</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Notlar</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
                                     <span asp-validation-for="Notes" class="text-danger"></span>
                                 </div>
-
-                                <!-- Current Status Info -->
-                                <div class="alert alert-info">
-                                    <h6 class="alert-heading">
-                                        <i class="fas fa-info-circle"></i> Mevcut Bilgiler
-                                    </h6>
-                                    <p class="mb-1"><strong>Oluşturulma:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-                                    @if (Model.UpdatedAt.HasValue)
-                                    {
-                                        <p class="mb-0"><strong>Son Güncelleme:</strong> @Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                                    }
-                                </div>
                             </div>
                         </div>
-
-                        <!-- Form Actions -->
-                        <div class="row">
-                            <div class="col-12">
-                                <hr>
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times"></i> İptal
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn btn-outline-primary me-2" onclick="resetForm()">
-                                            <i class="fas fa-undo"></i> Sıfırla
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save"></i> Kaydet
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-between border-top pt-3">
+                            <a href="@Url.Action("Index","Appointment")" class="btn btn-secondary"><i class="fas fa-times"></i> İptal</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Quick Info Card -->
-            <div class="card shadow-sm mt-4">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb"></i> Düzenleme İpuçları
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-unstyled mb-0">
-                                <li><i class="fas fa-check text-success me-2"></i> Hasta ve Doktor ID'lerinin doğru olduğundan emin olun</li>
-                                <li><i class="fas fa-check text-success me-2"></i> Randevu tarihinin geçmiş bir tarih olmadığını kontrol edin</li>
-                                <li><i class="fas fa-check text-success me-2"></i> Uygun randevu tipini seçin</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <ul class="list-unstyled mb-0">
-                                <li><i class="fas fa-info text-info me-2"></i> Notlar alanı isteğe bağlıdır</li>
-                                <li><i class="fas fa-info text-info me-2"></i> Durum değişiklikleri sistem tarafından takip edilir</li>
-                                <li><i class="fas fa-info text-info me-2"></i> Güncelleme tarihi otomatik olarak ayarlanır</li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        // Form validation
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            if (!this.checkValidity()) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Show validation messages
-                this.classList.add('was-validated');
-                
-                // Focus on first invalid field
-                const firstInvalid = this.querySelector(':invalid');
-                if (firstInvalid) {
-                    firstInvalid.focus();
-                }
-                
-                return false;
+        document.addEventListener('DOMContentLoaded', () => {
+            // AppointmentDate parçala -> inputlara koy
+            const originalIso = '@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm:ss")';
+            if (originalIso) {
+                const [datePart, timePartFull] = originalIso.split('T');
+                const timePart = timePartFull.substring(0,5);
+                document.getElementById('appointmentDate').value = datePart;
+                // Eğer listedeki slotta varsa seç
+                const timeSel = document.getElementById('appointmentTime');
+                [...timeSel.options].forEach(o=>{ if(o.value===timePart) o.selected=true; });
+                document.getElementById('hiddenAppointmentDate').value = originalIso;
             }
-            
-            // Show loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+            document.getElementById('appointmentDate').addEventListener('change', combineDateTime);
+            document.getElementById('appointmentTime').addEventListener('change', combineDateTime);
         });
-
-        function resetForm() {
-            if (confirm('Formu sıfırlamak istediğinize emin misiniz? Tüm değişiklikler kaybolacak.')) {
-                document.getElementById('editForm').reset();
-                document.getElementById('editForm').classList.remove('was-validated');
-            }
-        }
-
-        // Real-time validation
-        document.querySelectorAll('input, select, textarea').forEach(field => {
-            field.addEventListener('blur', function() {
-                if (this.checkValidity()) {
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                } else {
-                    this.classList.remove('is-valid');
-                    this.classList.add('is-invalid');
-                }
-            });
-        });
-
-        // Set minimum date to current date for appointment date
-        const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
-        if (appointmentDateInput) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            
-            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-            appointmentDateInput.min = minDateTime;
+        function combineDateTime(){
+            const d = document.getElementById('appointmentDate').value;
+            const t = document.getElementById('appointmentTime').value;
+            const hidden = document.getElementById('hiddenAppointmentDate');
+            if(d && t){ hidden.value = d + 'T' + t + ':00'; }
         }
     </script>
-
     <style>
-        .form-label {
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-
-        .is-valid {
-            border-color: #28a745 !important;
-        }
-
-        .is-invalid {
-            border-color: #dc3545 !important;
-        }
-
-        .card {
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .btn {
-            transition: all 0.3s ease;
-        }
+        .card-header.bg-gradient-primary {background: linear-gradient(135deg,#007bff 0%,#0056b3 100%);} 
+        .input-group-text {background:#f8f9fa;}
     </style>
 }

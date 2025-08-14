@@ -44,10 +44,10 @@
                                 @Model.Name.First()
                             </div>
                             <h4 class="card-title mb-1">@Model.Name</h4>
-                            <span class="badge bg-@(Model.Role == UserRole.Doctor ? "primary" : 
-                                                    Model.Role == UserRole.Patient ? "success" : 
-                                                    Model.Role == UserRole.Nurse ? "info" : 
-                                                    Model.Role == UserRole.Staff ? "warning" : "danger") mb-3">
+                            <span class="badge bg-@(Model.Role == "Doctor" ? "primary" : 
+                                                    Model.Role == "Patient" ? "success" : 
+                                                    Model.Role == "Nurse" ? "info" : 
+                                                    Model.Role == "Staff" ? "warning" : "danger") mb-3">
                                 @Model.Role
                             </span>
                             
@@ -89,7 +89,7 @@
                         </div>
                         <div class="card-body p-2">
                             <div class="d-grid gap-2">
-                                @if (Model.Role == UserRole.Doctor)
+                                @if (Model.Role == "Doctor")
                                 {
                                     <a href="#" class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-calendar-plus"></i> Randevu Oluştur
@@ -98,7 +98,7 @@
                                         <i class="fas fa-calendar-check"></i> Randevuları Görüntüle
                                     </a>
                                 }
-                                else if (Model.Role == UserRole.Patient)
+                                else if (Model.Role == "Patient")
                                 {
                                     <a href="#" class="btn btn-outline-success btn-sm">
                                         <i class="fas fa-calendar-plus"></i> Randevu Al

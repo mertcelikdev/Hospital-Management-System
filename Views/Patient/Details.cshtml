@@ -1,0 +1,474 @@
+@model HospitalManagementSystem.DTOs.PatientDto
+@{
+    ViewData["Title"] = "Hasta Detayları";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Hasta Detayları</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="/">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index")">Hastalar</a></li>
+                        <li class="breadcrumb-item active">Detaylar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Hasta Bilgileri -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="header-title mb-0">Kişisel Bilgiler</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-semibold text-muted" style="width: 40%;">Ad Soyad:</td>
+                                    <td><strong>@Model.FullName</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">TC Kimlik No:</td>
+                                    <td>@Model.TcNo</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Doğum Tarihi:</td>
+                                    <td>
+                                        @Model.DateOfBirth.ToString("dd.MM.yyyy")
+                                        <small class="text-muted">(@(Model.Age) yaş)</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Cinsiyet:</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Gender))
+                                        {
+                                            <span class="badge @(Model.Gender == "Erkek" ? "bg-primary" : "bg-pink")">
+                                                @Model.Gender
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Kan Grubu:</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.BloodType))
+                                        {
+                                            <span class="badge bg-danger">@Model.BloodType</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td class="fw-semibold text-muted" style="width: 40%;">Telefon:</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                        {
+                                            <a href="tel:@Model.PhoneNumber" class="text-decoration-none">@Model.PhoneNumber</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">E-posta:</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Email))
+                                        {
+                                            <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Acil Durum İletişim:</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.EmergencyContactPhone))
+                                        {
+                                            <a href="tel:@Model.EmergencyContactPhone" class="text-decoration-none">@Model.EmergencyContactPhone</a>
+                                            @if(!string.IsNullOrEmpty(Model.EmergencyContactName)) { <small class="text-muted"> (@Model.EmergencyContactName)</small>; }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Kayıt Tarihi:</td>
+                                    <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Son Güncelleme:</td>
+                                    <td>@Model.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-muted">Adres Bilgileri</h6>
+                                <div class="border rounded p-3" style="background: #f8f9fa;">
+                                    <i class="mdi mdi-map-marker text-muted me-1"></i>
+                                    @Model.Address
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- MedicalHistory alanı DTO'da yok, kaldırıldı -->
+
+                    @if (Model.Allergies != null && Model.Allergies.Any())
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-muted">Alerjiler</h6>
+                                <div class="border rounded p-3" style="background: #fff3cd;">
+                                    <i class="mdi mdi-alert text-warning me-1"></i>
+                                    <strong>DİKKAT:</strong> @string.Join(", ", Model.Allergies)
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Hasta İstatistikleri -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">Hasta İstatistikleri</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="widget-rounded-circle card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="avatar-lg rounded-circle bg-soft-primary border-primary border">
+                                                <i class="mdi mdi-calendar-check font-22 avatar-title text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-end">
+                                                <h3 class="text-dark mt-1">0</h3>
+                                                <p class="text-muted mb-1 text-truncate">Randevular</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="widget-rounded-circle card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="avatar-lg rounded-circle bg-soft-success border-success border">
+                                                <i class="mdi mdi-file-document font-22 avatar-title text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-end">
+                                                <h3 class="text-dark mt-1">0</h3>
+                                                <p class="text-muted mb-1 text-truncate">Reçeteler</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="widget-rounded-circle card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="avatar-lg rounded-circle bg-soft-info border-info border">
+                                                <i class="mdi mdi-pill font-22 avatar-title text-info"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-end">
+                                                <h3 class="text-dark mt-1">0</h3>
+                                                <p class="text-muted mb-1 text-truncate">İlaçlar</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="widget-rounded-circle card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="avatar-lg rounded-circle bg-soft-warning border-warning border">
+                                                <i class="mdi mdi-hospital-building font-22 avatar-title text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-end">
+                                                <h3 class="text-dark mt-1">@Model.Age</h3>
+                                                <p class="text-muted mb-1 text-truncate">Yaş</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- İşlemler -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">İşlemler</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        @if (User.HasClaim("permission", "CanEditPatients"))
+                        {
+                            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">
+                                <i class="mdi mdi-pencil me-1"></i> Hasta Bilgilerini Düzenle
+                            </a>
+                        }
+                        
+                        @if (User.HasClaim("permission", "CanCreatePrescriptions"))
+                        {
+                            <a href="/Prescription/Create?patientId=@Model.Id" class="btn btn-success">
+                                <i class="mdi mdi-file-document-plus me-1"></i> Yeni Reçete Oluştur
+                            </a>
+                        }
+                        
+                        @if (User.HasClaim("permission", "CanViewPrescriptions"))
+                        {
+                            <a href="/Prescription?patientId=@Model.Id" class="btn btn-info">
+                                <i class="mdi mdi-file-document me-1"></i> Hasta Reçetelerini Görüntüle
+                            </a>
+                        }
+                        
+                        @if (User.HasClaim("permission", "CanDeletePatients"))
+                        {
+                            <button type="button" class="btn btn-danger" onclick="confirmDelete('@Model.Id')">
+                                <i class="mdi mdi-delete me-1"></i> Hastayı Sil
+                            </button>
+                        }
+                        
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="mdi mdi-arrow-left me-1"></i> Hasta Listesine Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hasta Özet Kartı -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">Hasta Özeti</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-lg mx-auto mb-2">
+                            <span class="avatar-title rounded-circle bg-soft-primary text-primary font-20">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </span>
+                        </div>
+                        <h5 class="mb-1">@Model.FullName</h5>
+                        <p class="text-muted font-14">TC: @Model.TcNo</p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr>
+                                <td><i class="mdi mdi-calendar text-muted me-1"></i> Yaş</td>
+                                <td class="text-end">@Model.Age yaş</td>
+                            </tr>
+                            <tr>
+                                <td><i class="mdi mdi-gender-male-female text-muted me-1"></i> Cinsiyet</td>
+                                <td class="text-end">@(Model.Gender ?? "Belirtilmemiş")</td>
+                            </tr>
+                            <tr>
+                                <td><i class="mdi mdi-water text-muted me-1"></i> Kan Grubu</td>
+                                <td class="text-end">
+                                    @if (!string.IsNullOrEmpty(Model.BloodType))
+                                    {
+                                        <span class="badge bg-danger">@Model.BloodType</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Belirtilmemiş</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="mdi mdi-phone text-muted me-1"></i> Telefon</td>
+                                <td class="text-end">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Belirtilmemiş" : Model.PhoneNumber)</td>
+                            </tr>
+                            <tr>
+                                <td><i class="mdi mdi-calendar-plus text-muted me-1"></i> Kayıt</td>
+                                <td class="text-end">@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    @if (Model.Allergies != null && Model.Allergies.Any())
+                    {
+                        <hr />
+                        <div class="alert alert-warning py-2" role="alert">
+                            <h6 class="alert-heading mb-1">
+                                <i class="mdi mdi-alert me-1"></i>Alerji Uyarısı
+                            </h6>
+                            <small>@string.Join(", ", Model.Allergies)</small>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Son Aktiviteler -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="header-title">Son Aktiviteler</h4>
+                </div>
+                <div class="card-body">
+                    <div class="timeline-alt pb-0">
+                        <div class="timeline-item">
+                            <i class="mdi mdi-account-plus bg-primary text-white timeline-icon"></i>
+                            <div class="timeline-item-info">
+                                <h6 class="mb-1">Hasta Kaydı Oluşturuldu</h6>
+                                <small class="text-muted">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                        
+                        @if (Model.UpdatedAt > Model.CreatedAt)
+                        {
+                            <div class="timeline-item">
+                                <i class="mdi mdi-pencil bg-warning text-white timeline-icon"></i>
+                                <div class="timeline-item-info">
+                                    <h6 class="mb-1">Bilgiler Güncellendi</h6>
+                                    <small class="text-muted">@Model.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                </div>
+                            </div>
+                        }
+                        
+                        <div class="timeline-item">
+                            <i class="mdi mdi-eye bg-info text-white timeline-icon"></i>
+                            <div class="timeline-item-info">
+                                <h6 class="mb-1">Detaylar Görüntülendi</h6>
+                                <small class="text-muted">@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hasta Silme Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu hastayı silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger"><strong>Bu işlem geri alınamaz ve hastaya ait tüm veriler silinecektir!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(patientId) {
+            const form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete")/' + patientId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .timeline-alt {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-alt::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .timeline-icon {
+            position: absolute;
+            left: -22px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .timeline-item-info h6 {
+            margin-bottom: 0.25rem;
+        }
+        
+        .bg-pink {
+            background-color: #e91e63 !important;
+        }
+    </style>
+}

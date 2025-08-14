@@ -1,0 +1,322 @@
+@model HospitalManagementSystem.Models.Patient
+@{
+    ViewData["Title"] = "Hasta Düzenle";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Hasta Bilgilerini Düzenle
+                        </h4>
+                        <a href="@Url.Action("Index", "Patient")" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" id="editPatientForm">
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="CreatedAt" type="hidden" />
+                        <!-- IsActive kaldırıldı -->
+                        
+                        <div class="row">
+                            <!-- Kişisel Bilgiler -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-user text-primary me-2"></i>Kişisel Bilgiler
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="FirstName" class="form-label fw-semibold">Ad *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input asp-for="FirstName" class="form-control" placeholder="Adınızı giriniz">
+                                        </div>
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="LastName" class="form-label fw-semibold">Soyad *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input asp-for="LastName" class="form-control" placeholder="Soyadınızı giriniz">
+                                        </div>
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="IdentityNumber" class="form-label fw-semibold">TC Kimlik No *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            <input asp-for="IdentityNumber" class="form-control" placeholder="11 haneli TC numaranız">
+                                        </div>
+                                        <span asp-validation-for="IdentityNumber" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="DateOfBirth" class="form-label fw-semibold">Doğum Tarihi *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            <input asp-for="DateOfBirth" type="date" class="form-control">
+                                        </div>
+                                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Gender" class="form-label fw-semibold">Cinsiyet *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                                            <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                                <option value="">Cinsiyet seçiniz</option>
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="Gender" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- İletişim Bilgileri -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-phone text-success me-2"></i>İletişim Bilgileri
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="PhoneNumber" class="form-label fw-semibold">Telefon *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input asp-for="PhoneNumber" class="form-control" placeholder="05XX XXX XX XX">
+                                        </div>
+                                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Email" class="form-label fw-semibold">E-posta</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            <input asp-for="Email" type="email" class="form-control" placeholder="ornek@email.com">
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Address" class="form-label fw-semibold">Adres</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Adres bilgilerinizi giriniz"></textarea>
+                                        </div>
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Occupation" class="form-label fw-semibold">Meslek</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                            <input asp-for="Occupation" class="form-control" placeholder="Mesleğinizi giriniz">
+                                        </div>
+                                        <span asp-validation-for="Occupation" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Sağlık Bilgileri -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-heartbeat text-danger me-2"></i>Sağlık Bilgileri
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="BloodType" class="form-label fw-semibold">Kan Grubu</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-tint"></i></span>
+                                            <select asp-for="BloodType" class="form-select">
+                                                <option value="">Kan grubu seçiniz</option>
+                                                <option value="A Rh+">A Rh+</option>
+                                                <option value="A Rh-">A Rh-</option>
+                                                <option value="B Rh+">B Rh+</option>
+                                                <option value="B Rh-">B Rh-</option>
+                                                <option value="AB Rh+">AB Rh+</option>
+                                                <option value="AB Rh-">AB Rh-</option>
+                                                <option value="O Rh+">O Rh+</option>
+                                                <option value="O Rh-">O Rh-</option>
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="BloodType" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Allergies" class="form-label fw-semibold">Alerjiler</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-exclamation-triangle"></i></span>
+                                            <textarea asp-for="Allergies" class="form-control" rows="2" placeholder="Bilinen alerjilerinizi yazınız"></textarea>
+                                        </div>
+                                        <span asp-validation-for="Allergies" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="ChronicDiseases" class="form-label fw-semibold">Kronik Hastalıklar</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-notes-medical"></i></span>
+                                            <textarea asp-for="ChronicDiseases" class="form-control" rows="2" placeholder="Kronik hastalıklarınızı yazınız"></textarea>
+                                        </div>
+                                        <span asp-validation-for="ChronicDiseases" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="CurrentMedications" class="form-label fw-semibold">Kullandığı İlaçlar</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-pills"></i></span>
+                                            <textarea asp-for="CurrentMedications" class="form-control" rows="2" placeholder="Düzenli kullandığınız ilaçları yazınız"></textarea>
+                                        </div>
+                                        <span asp-validation-for="CurrentMedications" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acil Durum ve Sigorta -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h5 class="section-title mb-3">
+                                        <i class="fas fa-shield-alt text-warning me-2"></i>Acil Durum & Sigorta
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="EmergencyContactName" class="form-label fw-semibold">Acil Durum Kişisi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-friends"></i></span>
+                                            <input asp-for="EmergencyContactName" class="form-control" placeholder="Acil durumda aranacak kişi">
+                                        </div>
+                                        <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="EmergencyContactPhone" class="form-label fw-semibold">Acil Durum Telefonu</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                            <input asp-for="EmergencyContactPhone" class="form-control" placeholder="05XX XXX XX XX">
+                                        </div>
+                                        <span asp-validation-for="EmergencyContactPhone" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="EmergencyContactRelation" class="form-label fw-semibold">Yakınlık Derecesi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-heart"></i></span>
+                                            <select asp-for="EmergencyContactRelation" class="form-select">
+                                                <option value="">Yakınlık derecesi seçiniz</option>
+                                                <option value="Eş">Eş</option>
+                                                <option value="Anne">Anne</option>
+                                                <option value="Baba">Baba</option>
+                                                <option value="Kardeş">Kardeş</option>
+                                                <option value="Çocuk">Çocuk</option>
+                                                <option value="Arkadaş">Arkadaş</option>
+                                                <option value="Diğer">Diğer</option>
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="EmergencyContactRelation" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="InsuranceNumber" class="form-label fw-semibold">Sigorta Numarası</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-id-card-alt"></i></span>
+                                            <input asp-for="InsuranceNumber" class="form-control" placeholder="Sigorta numaranızı giriniz">
+                                        </div>
+                                        <span asp-validation-for="InsuranceNumber" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonları -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            * işaretli alanların doldurulması zorunludur.
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-secondary me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo me-1"></i>Sıfırla
+                                        </button>
+                                        <a href="@Url.Action("Index", "Patient")" class="btn btn-outline-primary me-2">
+                                            <i class="fas fa-times me-1"></i>İptal
+                                        </a>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save me-1"></i>Kaydet
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        border-left: 4px solid #e3f2fd;
+        padding-left: 15px;
+    }
+    
+    .section-title {
+        color: #1976d2;
+        font-weight: 600;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        color: #6c757d;
+    }
+    
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    function resetForm() {
+        if (confirm('Formu sıfırlamak istediğinizden emin misiniz?')) {
+            document.getElementById('editPatientForm').reset();
+        }
+    }
+
+    // Form validation
+    document.getElementById('editPatientForm').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Kaydediliyor...';
+        
+        // Re-enable button after a delay to allow form submission
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Kaydet';
+        }, 3000);
+    });
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

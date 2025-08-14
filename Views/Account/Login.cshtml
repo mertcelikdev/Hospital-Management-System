@@ -1,0 +1,87 @@
+@model HospitalManagementSystem.DTOs.LoginDto
+@{
+	Layout = null; // Fullscreen login
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Giriş | Hospital Management</title>
+	<link rel="stylesheet" href="~/css/login.css?v=1" />
+</head>
+<body class="login-body">
+	<div class="login-container">
+		<div class="login-left">
+			<h1 class="login-brand">
+				<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor">
+					<path d="M12 2v20M5 7h14M5 17h14" />
+				</svg>
+				<span>Hospital Management</span>
+			</h1>
+			<h2 class="login-title">Hoş geldin</h2>
+			<p class="login-sub">Devam etmek için hesabına giriş yap. Yetkine göre ilgili panele yönlendirileceksin.</p>
+			@if (!ViewData.ModelState.IsValid)
+			{
+				<div class="validation-summary-errors">
+					@foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+					{
+						<div>@modelError.ErrorMessage</div>
+					}
+				</div>
+			}
+			<form asp-action="Login" method="post" autocomplete="off">
+				<div class="form-group">
+					<label for="Email">E‑posta</label>
+					<div class="input-wrapper">
+						<input asp-for="Email" type="email" placeholder="ornek@hastane.com" />
+						<svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><path d="M4 4h16v16H4z" /><path d="M4 4l8 8 8-8" /></svg>
+					</div>
+					<span asp-validation-for="Email" class="field-validation-error"></span>
+				</div>
+				<div class="form-group">
+					<label for="Password">Şifre</label>
+					<div class="input-wrapper">
+						<input asp-for="Password" type="password" placeholder="••••••••" id="pwd" />
+						<svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>
+						<button type="button" class="show-password" aria-label="Göster" onclick="togglePwd()">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+						</button>
+					</div>
+					<span asp-validation-for="Password" class="field-validation-error"></span>
+				</div>
+				<div class="actions">
+					<button type="submit" class="primary-btn">Giriş Yap</button>
+					<button type="button" class="secondary-link" onclick="forgotPwd()">Şifremi Unuttum</button>
+				</div>
+			</form>
+			<div class="footer-note">© @DateTime.UtcNow.Year Hospital Management</div>
+		</div>
+		<div class="login-right">
+			<div class="hero-panel">
+				<div class="hero-top">
+					<h2>Sağlık Yönetimi</h2>
+					<p>Tüm hasta, randevu ve stok süreçlerini tek panelden yönetin. Güvenli ve hızlı erişim.</p>
+					<div class="stats">
+						<div class="stat"><h3>7/24</h3><span>Erişim</span></div>
+						<div class="stat"><h3>+500</h3><span>Hasta</span></div>
+						<div class="stat"><h3>+120</h3><span>Randevu/Gün</span></div>
+						<div class="stat"><h3>%99</h3><span>Uptime</span></div>
+					</div>
+				</div>
+				<div class="footer-note">Verileriniz SSL ve JWT ile korunur.</div>
+			</div>
+			<div class="bg-circles">
+				<span></span><span></span><span></span>
+			</div>
+		</div>
+	</div>
+	<script>
+		function togglePwd(){
+			const i=document.getElementById('pwd');
+			i.type = i.type==='password'?'text':'password';
+		}
+		function forgotPwd(){ alert('Şifre sıfırlama özelliği yakında.'); }
+	</script>
+</body>
+</html>
