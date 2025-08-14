@@ -6,21 +6,36 @@ namespace HospitalManagementSystem.Models
 {
     public enum AppointmentStatus
     {
-        Scheduled,
-        Confirmed,
-        InProgress,
-        Completed,
-        Cancelled,
-        NoShow
+        Planlandı,     // Scheduled
+        Scheduled = Planlandı,
+        Onaylandı,     // Confirmed  
+        Confirmed = Onaylandı,
+        Devam,         // InProgress
+        InProgress = Devam,
+        Tamamlandı,    // Completed
+        Completed = Tamamlandı,
+        İptalEdildi,   // Cancelled
+        Cancelled = İptalEdildi,
+        Gelmedi,       // NoShow
+        NoShow = Gelmedi
     }
 
     public enum AppointmentType
     {
-        Consultation,
-        FollowUp,
-        Emergency,
-        Surgery,
-        Therapy
+        Muayene,       // Consultation
+        Consultation = Muayene,
+        Kontrol,       // FollowUp
+        FollowUp = Kontrol,
+        Acil,          // Emergency
+        Emergency = Acil,
+        Ameliyat,      // Surgery
+        Surgery = Ameliyat,
+        İnceleme,      // Examination
+        Examination = İnceleme,
+        CheckUp,       // Checkup
+        Checkup = CheckUp,
+        Tedavi,        // Treatment
+        Treatment = Tedavi
     }
 
     public class Appointment
@@ -36,33 +51,29 @@ namespace HospitalManagementSystem.Models
         public string DoctorId { get; set; } = string.Empty;
 
         [Required]
-        public string DepartmentId { get; set; } = string.Empty;
-
-        [Required]
         public DateTime AppointmentDate { get; set; }
 
         [Required]
-        public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(30);
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Planlandı;
 
         [Required]
         public AppointmentType Type { get; set; }
-
-        [Required]
-        public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
-
-        public string Reason { get; set; } = string.Empty;
 
         public string Notes { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
+        // Additional properties for compatibility
         public string CreatedBy { get; set; } = string.Empty;
+        public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(30);
 
         // Navigation properties
+        [BsonIgnore]
         public User? Patient { get; set; }
+
+        [BsonIgnore]
         public User? Doctor { get; set; }
-        public Department? Department { get; set; }
     }
 }

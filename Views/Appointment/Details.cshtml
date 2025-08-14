@@ -1,0 +1,332 @@
+@model Appointment
+
+@{
+    ViewData["Title"] = "Randevu Detayları";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-calendar-alt text-primary"></i>
+                        Randevu Detayları
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Appointment")">Randevular</a></li>
+                            <li class="breadcrumb-item active">Detaylar</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="@Url.Action("Edit", "Appointment", new { id = Model.Id })" class="btn btn-primary me-2">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                    <button class="btn btn-danger me-2" onclick="deleteAppointment('@Model.Id')">
+                        <i class="fas fa-trash"></i> Sil
+                    </button>
+                    <a href="@Url.Action("Index", "Appointment")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Appointment Info Card -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="appointment-icon mx-auto mb-3">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <h4 class="card-title mb-1">@Model.AppointmentDate.ToString("dd.MM.yyyy")</h4>
+                            <h5 class="text-muted mb-3">@Model.AppointmentDate.ToString("HH:mm")</h5>
+                            
+                            <span class="badge bg-@(Model.Status == AppointmentStatus.Scheduled ? "primary" : 
+                                                    Model.Status == AppointmentStatus.Completed ? "success" : 
+                                                    Model.Status == AppointmentStatus.Cancelled ? "danger" : "warning") mb-3 fs-6">
+                                @Model.Status
+                            </span>
+                            
+                            <div class="d-flex justify-content-center gap-2">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-stethoscope"></i> @Model.Type
+                                </span>
+                                
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-clock"></i> 
+                                    @((Model.AppointmentDate - DateTime.Now).Days) gün
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-bolt"></i> Hızlı İşlemler
+                            </h6>
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="d-grid gap-2">
+                                @if (Model.Status == AppointmentStatus.Scheduled)
+                                {
+                                    <button class="btn btn-outline-success btn-sm" onclick="updateStatus('@Model.Id', 'Completed')">
+                                        <i class="fas fa-check"></i> Tamamla
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm" onclick="updateStatus('@Model.Id', 'Cancelled')">
+                                        <i class="fas fa-times"></i> İptal Et
+                                    </button>
+                                }
+                                
+                                <a href="@Url.Action("Details", "User", new { id = Model.PatientId })" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-user"></i> Hasta Bilgileri
+                                </a>
+                                
+                                <a href="@Url.Action("Details", "User", new { id = Model.DoctorId })" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-user-md"></i> Doktor Bilgileri
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointment Details -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle"></i> Randevu Bilgileri
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small">Hasta ID</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-user text-primary me-2"></i>
+                                            @Model.PatientId
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small">Doktor ID</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-user-md text-success me-2"></i>
+                                            @Model.DoctorId
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small">Randevu Tipi</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-stethoscope text-info me-2"></i>
+                                            @Model.Type
+                                        </div>
+                                    </div>
+
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small">Durum</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-circle text-@(Model.Status == AppointmentStatus.Scheduled ? "primary" : 
+                                                                            Model.Status == AppointmentStatus.Completed ? "success" : 
+                                                                            Model.Status == AppointmentStatus.Cancelled ? "danger" : "warning") me-2"></i>
+                                            @Model.Status
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    @if (!string.IsNullOrEmpty(Model.Notes))
+                                    {
+                                        <div class="info-item mb-3">
+                                            <label class="text-muted small">Notlar</label>
+                                            <div class="fw-semibold">
+                                                <i class="fas fa-sticky-note text-warning me-2"></i>
+                                                @Model.Notes
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="info-item mb-3">
+                                        <label class="text-muted small">Oluşturulma Tarihi</label>
+                                        <div class="fw-semibold">
+                                            <i class="fas fa-calendar-plus text-primary me-2"></i>
+                                            @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                        </div>
+                                    </div>
+
+                                    @if (Model.UpdatedAt.HasValue)
+                                    {
+                                        <div class="info-item mb-3">
+                                            <label class="text-muted small">Son Güncelleme</label>
+                                            <div class="fw-semibold">
+                                                <i class="fas fa-calendar-edit text-warning me-2"></i>
+                                                @Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history"></i> Randevu Geçmişi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Randevu Oluşturuldu</h6>
+                                        <p class="text-muted mb-1">Sistem tarafından otomatik olarak oluşturuldu</p>
+                                        <small class="text-muted">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+
+                                @if (Model.UpdatedAt.HasValue && Model.UpdatedAt > Model.CreatedAt)
+                                {
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-warning"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Randevu Güncellendi</h6>
+                                            <p class="text-muted mb-1">Randevu bilgileri güncellendi</p>
+                                            <small class="text-muted">@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Detaylar Görüntülendi</h6>
+                                        <p class="text-muted mb-1">Bu sayfa görüntülendi</p>
+                                        <small class="text-muted">@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteAppointment(id) {
+            if (confirm('Bu randevuyu silmek istediğinize emin misiniz?')) {
+                fetch(`/Appointment/Delete/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/Appointment';
+                    } else {
+                        alert('Randevu silinirken bir hata oluştu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Bir hata oluştu.');
+                });
+            }
+        }
+
+        function updateStatus(id, status) {
+            if (confirm(`Randevu durumunu ${status} olarak güncellemek istediğinize emin misiniz?`)) {
+                fetch(`/Appointment/UpdateStatus/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: status })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Durum güncellenirken bir hata oluştu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Bir hata oluştu.');
+                });
+            }
+        }
+    </script>
+
+    <style>
+        .appointment-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .info-item label {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -23px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #e9ecef;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #dee2e6;
+        }
+    </style>
+}

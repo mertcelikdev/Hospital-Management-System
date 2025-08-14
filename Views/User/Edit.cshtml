@@ -1,0 +1,214 @@
+@model User
+
+@{
+    ViewData["Title"] = "Kullanıcı Düzenle";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-user-edit text-primary"></i>
+                        Kullanıcı Düzenle
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "User")">Kullanıcılar</a></li>
+                            <li class="breadcrumb-item active">Düzenle</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+            </div>
+
+            <!-- Edit Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3">
+                            @Model.Name.First()
+                        </div>
+                        <div>
+                            <h5 class="mb-1">@Model.Name</h5>
+                            <small class="opacity-75">@Model.Email</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" id="editUserForm">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        
+                        <div class="row">
+                            <!-- Personal Information -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-user"></i> Kişisel Bilgiler
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="Name" class="form-label fw-semibold">Ad Soyad *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input asp-for="Name" class="form-control" placeholder="Ad ve soyadınızı giriniz" />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Email" class="form-label fw-semibold">E-posta *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            <input asp-for="Email" class="form-control" type="email" placeholder="e-posta@example.com" />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Phone" class="form-label fw-semibold">Telefon</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input asp-for="Phone" class="form-control" placeholder="0555 555 55 55" />
+                                        </div>
+                                        <span asp-validation-for="Phone" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Gender" class="form-label fw-semibold">Cinsiyet</label>
+                                        <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()">
+                                            <option value="">Cinsiyet seçiniz</option>
+                                        </select>
+                                        <span asp-validation-for="Gender" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="DateOfBirth" class="form-label fw-semibold">Doğum Tarihi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                        </div>
+                                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Role & Address Information -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-id-badge"></i> Rol ve Adres
+                                    </h6>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Role" class="form-label fw-semibold">Rol *</label>
+                                        <select asp-for="Role" class="form-select" id="Role" asp-items="Html.GetEnumSelectList<UserRole>()">
+                                            <option value="">Rol seçiniz</option>
+                                        </select>
+                                        <span asp-validation-for="Role" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3" id="departmentDiv" style="display: none;">
+                                        <label asp-for="DepartmentId" class="form-label fw-semibold">Departman</label>
+                                        <select asp-for="DepartmentId" class="form-select" id="Department">
+                                            <option value="">Departman seçiniz</option>
+                                            <option value="Kardiyoloji">Kardiyoloji</option>
+                                            <option value="Nöroloji">Nöroloji</option>
+                                            <option value="Ortopedi">Ortopedi</option>
+                                            <option value="Pediatri">Pediatri</option>
+                                            <option value="Dahiliye">Dahiliye</option>
+                                            <option value="Cerrahi">Cerrahi</option>
+                                            <option value="Göz">Göz</option>
+                                            <option value="Kulak Burun Boğaz">Kulak Burun Boğaz</option>
+                                            <option value="Acil">Acil</option>
+                                        </select>
+                                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Address" class="form-label fw-semibold">Adres</label>
+                                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Tam adresinizi giriniz"></textarea>
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="EmergencyContact" class="form-label fw-semibold">Acil Durum İletişimi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                            <input asp-for="EmergencyContact" class="form-control" placeholder="Acil durum telefonu" />
+                                        </div>
+                                        <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                        <label asp-for="IsActive" class="form-check-label fw-semibold">
+                                            Aktif Kullanıcı
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/user-create.js"></script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+        
+        .card-header.bg-gradient-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .form-section {
+            border-left: 4px solid transparent;
+            padding-left: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+}

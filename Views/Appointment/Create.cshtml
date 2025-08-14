@@ -1,0 +1,254 @@
+@model Appointment
+
+@{
+    ViewData["Title"] = "Yeni Randevu Oluştur";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-calendar-plus text-primary"></i>
+                        Yeni Randevu Oluştur
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Appointment")">Randevular</a></li>
+                            <li class="breadcrumb-item active">Yeni Randevu</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="@Url.Action("Index", "Appointment")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+            </div>
+
+            <!-- Appointment Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Randevu Bilgileri
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="appointmentForm">
+                        <div class="row">
+                            <!-- Patient and Doctor Selection -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-users"></i> Hasta ve Doktor Seçimi
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="PatientId" class="form-label fw-semibold">Hasta *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <select asp-for="PatientId" class="form-select" id="PatientId">
+                                                <option value="">Hasta seçiniz</option>
+                                                @foreach (var patient in ViewBag.Patients as List<User>)
+                                                {
+                                                    <option value="@patient.Id">@patient.Name - @patient.Email</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="DoctorId" class="form-label fw-semibold">Doktor *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-md"></i></span>
+                                            <select asp-for="DoctorId" class="form-select" id="DoctorId">
+                                                <option value="">Doktor seçiniz</option>
+                                                @foreach (var doctor in ViewBag.Doctors as List<User>)
+                                                {
+                                                    <option value="@doctor.Id">Dr. @doctor.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="DoctorId" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Type" class="form-label fw-semibold">Randevu Türü *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-stethoscope"></i></span>
+                                            <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentType>()">
+                                                <option value="">Randevu türü seçiniz</option>
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="Type" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date and Status -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-calendar"></i> Tarih ve Durum
+                                    </h6>
+
+                                    <div class="mb-3">
+                                        <label asp-for="AppointmentDate" class="form-label fw-semibold">Randevu Tarihi ve Saati *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                            <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
+                                        </div>
+                                        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle"></i> Lütfen uygun bir tarih ve saat seçiniz
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Status" class="form-label fw-semibold">Durum</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-flag"></i></span>
+                                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentStatus>()">
+                                                <option value="">Durum seçiniz</option>
+                                            </select>
+                                        </div>
+                                        <span asp-validation-for="Status" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Notes" class="form-label fw-semibold">Notlar</label>
+                                        <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Randevu ile ilgili notlarınızı yazabilirsiniz..."></textarea>
+                                        <span asp-validation-for="Notes" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-bolt text-warning"></i> Hızlı Randevu Seçenekleri
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setQuickAppointment('today')">
+                                                    <i class="fas fa-calendar-day"></i> Bugün
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setQuickAppointment('tomorrow')">
+                                                    <i class="fas fa-calendar-plus"></i> Yarın
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button type="button" class="btn btn-outline-info btn-sm w-100" onclick="setQuickAppointment('nextweek')">
+                                                    <i class="fas fa-calendar-week"></i> Gelecek Hafta
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button type="button" class="btn btn-outline-warning btn-sm w-100" onclick="setQuickAppointment('emergency')">
+                                                    <i class="fas fa-exclamation-triangle"></i> Acil
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="@Url.Action("Index", "Appointment")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Randevu Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default status to Scheduled
+            document.getElementById('Status').value = 'Scheduled';
+            
+            // Set minimum date to today
+            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+            const now = new Date();
+            const minDateTime = now.toISOString().slice(0, 16);
+            appointmentDateInput.min = minDateTime;
+        });
+
+        function setQuickAppointment(type) {
+            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+            const now = new Date();
+            
+            switch(type) {
+                case 'today':
+                    now.setHours(now.getHours() + 2); // 2 saat sonra
+                    break;
+                case 'tomorrow':
+                    now.setDate(now.getDate() + 1);
+                    now.setHours(9, 0, 0, 0); // Yarın saat 9:00
+                    break;
+                case 'nextweek':
+                    now.setDate(now.getDate() + 7);
+                    now.setHours(9, 0, 0, 0); // Gelecek hafta saat 9:00
+                    break;
+                case 'emergency':
+                    now.setMinutes(now.getMinutes() + 30); // 30 dakika sonra
+                    document.getElementById('Type').value = 'Emergency';
+                    document.getElementById('Status').value = 'Confirmed';
+                    break;
+            }
+            
+            appointmentDateInput.value = now.toISOString().slice(0, 16);
+        }
+    </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+        
+        .card-header.bg-gradient-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .form-section {
+            border-left: 4px solid transparent;
+            padding-left: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    </style>
+}

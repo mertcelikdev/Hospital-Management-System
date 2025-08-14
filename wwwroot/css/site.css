@@ -1,0 +1,304 @@
+/* Hospital Management System Custom Styles */
+
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f6fa;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+/* Tables */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white;
+}
+
+.table thead th {
+    background-color: var(--light-color);
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-top: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Forms */
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+/* Status badges */
+.badge {
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+}
+
+.status-scheduled { background-color: #e3f2fd; color: #1976d2; }
+.status-confirmed { background-color: #e8f5e8; color: #2e7d32; }
+.status-completed { background-color: #f3e5f5; color: #7b1fa2; }
+.status-cancelled { background-color: #ffebee; color: #c62828; }
+
+/* Icons */
+.icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.icon-primary { background-color: rgba(0, 123, 255, 0.1); color: var(--primary-color); }
+.icon-success { background-color: rgba(40, 167, 69, 0.1); color: var(--success-color); }
+.icon-warning { background-color: rgba(255, 193, 7, 0.1); color: var(--warning-color); }
+.icon-danger { background-color: rgba(220, 53, 69, 0.1); color: var(--danger-color); }
+
+/* Dashboard specific styles */
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-number {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stats-label {
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+/* Activity timeline */
+.activity-item {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+.activity-time {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+    }
+    
+    .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Notification toast animations */
+.notification-toast {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Form animations */
+.form-control, .form-select {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    transform: scale(1.02);
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

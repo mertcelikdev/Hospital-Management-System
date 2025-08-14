@@ -10,10 +10,6 @@ namespace HospitalManagementSystem.Models
         Painkiller,
         Vitamin,
         Supplement,
-        Injection,
-        Syrup,
-        Tablet,
-        Capsule,
         Other
     }
 
@@ -35,15 +31,17 @@ namespace HospitalManagementSystem.Models
         public string Manufacturer { get; set; } = string.Empty;
 
         [Required]
-        public MedicineCategory Category { get; set; }
-
-        public string Description { get; set; } = string.Empty;
+        public string Form { get; set; } = string.Empty;
 
         [Required]
         public string Strength { get; set; } = string.Empty;
 
         [Required]
-        public string Unit { get; set; } = string.Empty;
+        public MedicineCategory Category { get; set; }
+
+        public string Description { get; set; } = string.Empty;
+
+        public string Instructions { get; set; } = string.Empty;
 
         [Required]
         public decimal Price { get; set; }
@@ -51,20 +49,13 @@ namespace HospitalManagementSystem.Models
         [Required]
         public int StockQuantity { get; set; }
 
-        [Required]
         public int MinimumStock { get; set; } = 10;
 
-        public DateTime ExpiryDate { get; set; }
-
-        public string BatchNumber { get; set; } = string.Empty;
-
-        public List<string> SideEffects { get; set; } = new List<string>();
-
-        public List<string> Contraindications { get; set; } = new List<string>();
+        public DateTime? ExpiryDate { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        public DateTime? UpdatedAt { get; set; }
 
         public bool IsActive { get; set; } = true;
 

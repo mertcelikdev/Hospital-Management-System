@@ -1,0 +1,40 @@
+@*
+    Client-side validation scripts for ASP.NET Core MVC applications.
+    This partial view includes the necessary JavaScript libraries for client-side validation.
+*@
+
+<!-- jQuery (required for client-side validation) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+<!-- Microsoft jQuery Validation -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+<!-- Microsoft jQuery Validation Unobtrusive -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+
+<!-- Bootstrap Validation Styling -->
+<script>
+    // Add Bootstrap classes to validation errors
+    $(document).ready(function () {
+        // Override the default settings for validation
+        if ($.validator) {
+            $.validator.setDefaults({
+                highlight: function (element) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                },
+                unhighlight: function (element) {
+                    $(element).addClass('is-valid').removeClass('is-invalid');
+                },
+                errorElement: 'div',
+                errorClass: 'invalid-feedback',
+                errorPlacement: function (error, element) {
+                    if (element.parent('.input-group').length) {
+                        error.insertAfter(element.parent());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                }
+            });
+        }
+    });
+</script>

@@ -1,0 +1,326 @@
+@model List<User>
+@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-users text-primary me-2"></i>
+                Kullanıcılar
+            </h2>
+            <p class="text-muted">Sistemdeki tüm kullanıcıları görüntüleyin ve yönetin</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Yeni Kullanıcı
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-action="Doctors" class="text-decoration-none">
+                        <i class="fas fa-user-md display-6 text-primary mb-2"></i>
+                        <h5 class="card-title">Doktorlar</h5>
+                        <p class="text-muted">Sistemimizdeki doktorlar</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-action="Patients" class="text-decoration-none">
+                        <i class="fas fa-procedures display-6 text-success mb-2"></i>
+                        <h5 class="card-title">Hastalar</h5>
+                        <p class="text-muted">Kayıtlı hastalarımız</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-action="Nurses" class="text-decoration-none">
+                        <i class="fas fa-user-nurse display-6 text-info mb-2"></i>
+                        <h5 class="card-title">Hemşireler</h5>
+                        <p class="text-muted">Hemşire kadromuz</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-action="Index" class="text-decoration-none">
+                        <i class="fas fa-users display-6 text-warning mb-2"></i>
+                        <h5 class="card-title">Tüm Personel</h5>
+                        <p class="text-muted">Bütün kullanıcılar</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Ara</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="İsim, email veya telefon...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rol</label>
+                    <select class="form-select" id="roleFilter">
+                        <option value="">Tüm Roller</option>
+                        <option value="Doctor">Doktor</option>
+                        <option value="Patient">Hasta</option>
+                        <option value="Nurse">Hemşire</option>
+                        <option value="Staff">Personel</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="true">Aktif</option>
+                        <option value="false">Pasif</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="fas fa-times me-1"></i>Temizle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Kullanıcı Listesi
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Profil</th>
+                            <th>İsim</th>
+                            <th>Email</th>
+                            <th>Telefon</th>
+                            <th>Rol</th>
+                            <th>Durum</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                @user.Name.Substring(0, 1).ToUpper()
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@user.Name</strong>
+                                            @if (user.Gender.HasValue)
+                                            {
+                                                <small class="text-muted d-block">
+                                                    @(user.Gender == Gender.Male ? "Erkek" : user.Gender == Gender.Female ? "Kadın" : "Diğer")
+                                                </small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@user.Email</td>
+                                    <td>@user.Phone</td>
+                                    <td>
+                                        <span class="badge bg-@(GetRoleColor(user.Role))">
+                                            @GetRoleDisplayName(user.Role)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Pasif</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>@user.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@user.Id" 
+                                               class="btn btn-outline-info" title="Detaylar">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@user.Id" 
+                                               class="btn btn-outline-warning" title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="deleteUser('@user.Id', '@user.Name')" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Henüz kullanıcı kaydı bulunmamaktadır.</p>
+                                    <a asp-action="Create" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>İlk Kullanıcıyı Ekle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetRoleColor(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Doctor => "primary",
+            UserRole.Patient => "success",
+            UserRole.Nurse => "info",
+            UserRole.Staff => "warning",
+            UserRole.Admin => "danger",
+            _ => "secondary"
+        };
+    }
+
+    string GetRoleDisplayName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Doctor => "Doktor",
+            UserRole.Patient => "Hasta",
+            UserRole.Nurse => "Hemşire",
+            UserRole.Staff => "Personel",
+            UserRole.Admin => "Admin",
+            _ => "Bilinmiyor"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', filterTable);
+        document.getElementById('roleFilter').addEventListener('change', filterTable);
+        document.getElementById('statusFilter').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const table = document.getElementById('usersTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[1].textContent.toLowerCase();
+                const email = row.cells[2].textContent.toLowerCase();
+                const phone = row.cells[3].textContent.toLowerCase();
+                const role = row.cells[4].textContent;
+                const status = row.cells[5].textContent;
+
+                const matchesSearch = name.includes(searchTerm) || 
+                                    email.includes(searchTerm) || 
+                                    phone.includes(searchTerm);
+                const matchesRole = !roleFilter || role.includes(roleFilter);
+                const matchesStatus = !statusFilter || 
+                                    (statusFilter === 'true' && status.includes('Aktif')) ||
+                                    (statusFilter === 'false' && status.includes('Pasif'));
+
+                if (matchesSearch && matchesRole && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            filterTable();
+        }
+
+        function deleteUser(userId, userName) {
+            if (confirm(`"${userName}" kullanıcısını silmek istediğinizden emin misiniz?`)) {
+                // AJAX call to delete user
+                fetch(`/User/Delete/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        showNotification('Kullanıcı başarıyla silindi.', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showNotification('Kullanıcı silinirken bir hata oluştu.', 'danger');
+                    }
+                });
+            }
+        }
+    </script>
+
+    <style>
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+}

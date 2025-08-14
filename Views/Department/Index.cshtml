@@ -1,0 +1,212 @@
+@model IEnumerable<HospitalManagementSystem.Models.Department>
+
+@{
+    ViewData["Title"] = "Departman Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")" class="text-decoration-none">Ana Sayfa</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Departman Yönetimi</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-0">
+                <i class="fas fa-building me-2 text-primary"></i>Departman Yönetimi
+            </h2>
+            <p class="text-muted mb-0">Hastane departmanlarını yönetin</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Yeni Departman
+        </a>
+    </div>
+
+    <!-- Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control" 
+                               placeholder="Departman adı, kodu veya açıklama ile ara...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-search me-1"></i>Ara
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Temizle
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Departments Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Departmanlar
+                <span class="badge bg-secondary ms-2">@Model.Count() Toplam</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Departman</th>
+                                <th>Kod</th>
+                                <th>Bölüm Başkanı</th>
+                                <th>Lokasyon</th>
+                                <th>Personel</th>
+                                <th>Durum</th>
+                                <th width="150">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="@(!item.IsActive ? "table-secondary" : "")">
+                                    <td>
+                                        <div>
+                                            <strong>@item.Name</strong>
+                                            @if (!string.IsNullOrEmpty(item.Description))
+                                            {
+                                                <br><small class="text-muted">@item.Description</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@item.Code</span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.HeadOfDepartment))
+                                        {
+                                            <span>@item.HeadOfDepartment</span>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">Atanmamış</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Location))
+                                        {
+                                            <i class="fas fa-map-marker-alt text-muted me-1"></i>@item.Location
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">Belirtilmemiş</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <span class="badge bg-primary" title="Doktor">D: @item.DoctorCount</span>
+                                            <span class="badge bg-success" title="Hemşire">H: @item.NurseCount</span>
+                                            <span class="badge bg-warning" title="Personel">P: @item.StaffCount</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Aktif
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause me-1"></i>Pasif
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="İşlemler">
+                                            <a asp-action="Details" asp-route-id="@item.Id" 
+                                               class="btn btn-sm btn-outline-info" title="Detaylar">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" 
+                                               class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @if (!item.IsActive)
+                                            {
+                                                <form asp-action="Activate" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                            title="Aktif Et" onclick="return confirm('Bu departmanı aktif hale getirmek istediğinizden emin misiniz?')">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                                   class="btn btn-sm btn-outline-danger" title="Sil/Pasif Et">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Departman bulunamadı</h5>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                    {
+                        <p class="text-muted">"@ViewBag.SearchTerm" araması için sonuç bulunamadı.</p>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>Tüm Departmanları Göster
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz hiç departman eklenmemiş.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>İlk Departmanı Ekle
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Otomatik arama için debounce
+        let searchTimeout;
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length >= 2 || this.value.length === 0) {
+                        this.form.submit();
+                    }
+                }, 500);
+            });
+        }
+    </script>
+}

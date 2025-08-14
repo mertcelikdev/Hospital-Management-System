@@ -1,0 +1,370 @@
+@model Medicine
+
+@{
+    ViewData["Title"] = "Yeni İlaç Ekle";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-pills text-success"></i>
+                        Yeni İlaç Ekle
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Medicine")">İlaçlar</a></li>
+                            <li class="breadcrumb-item active">Yeni İlaç</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="@Url.Action("Index", "Medicine")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
+            </div>
+
+            <!-- Medicine Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        İlaç Bilgileri
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="medicineForm">
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-success mb-3">
+                                        <i class="fas fa-info-circle"></i> Temel Bilgiler
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="Name" class="form-label fw-semibold">İlaç Adı *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-pills"></i></span>
+                                            <input asp-for="Name" class="form-control" placeholder="İlaç adını giriniz" />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="Description" class="form-label fw-semibold">Açıklama</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-file-alt"></i></span>
+                                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                                      placeholder="İlaç hakkında detaylı bilgi giriniz..."></textarea>
+                                        </div>
+                                        <span asp-validation-for="Description" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle"></i> İlacın kullanım alanı, dozaj bilgileri, yan etkileri vb.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stock Information -->
+                            <div class="col-md-6">
+                                <div class="form-section mb-4">
+                                    <h6 class="text-success mb-3">
+                                        <i class="fas fa-boxes"></i> Stok Bilgileri
+                                    </h6>
+
+                                    <div class="mb-3">
+                                        <label asp-for="StockQuantity" class="form-label fw-semibold">Stok Miktarı *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-sort-numeric-up"></i></span>
+                                            <input asp-for="StockQuantity" class="form-control" type="number" min="0" placeholder="0" />
+                                            <span class="input-group-text">adet</span>
+                                        </div>
+                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i class="fas fa-exclamation-triangle text-warning"></i> 
+                                            Stok miktarı 10'un altına düştüğünde uyarı verilir.
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Stock Buttons -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Hızlı Stok Seçimi</label>
+                                        <div class="row g-2">
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setStock(50)">
+                                                    50
+                                                </button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setStock(100)">
+                                                    100
+                                                </button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setStock(500)">
+                                                    500
+                                                </button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="setStock(1000)">
+                                                    1000
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medicine Categories and Tags -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-tags text-info"></i> İlaç Kategorileri ve Etiketler
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Ana Kategori</label>
+                                                <select class="form-select" id="categorySelect">
+                                                    <option value="">Kategori seçiniz</option>
+                                                    <option value="antibiyotik">Antibiyotik</option>
+                                                    <option value="agri-kesici">Ağrı Kesici</option>
+                                                    <option value="ates-dusurucu">Ateş Düşürücü</option>
+                                                    <option value="vitamin">Vitamin</option>
+                                                    <option value="kalp">Kalp İlacı</option>
+                                                    <option value="sekerhastalik">Şeker Hastalığı</option>
+                                                    <option value="tansyon">Tansiyon</option>
+                                                    <option value="mide">Mide İlacı</option>
+                                                    <option value="astim">Astım</option>
+                                                    <option value="diger">Diğer</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Reçete Durumu</label>
+                                                <select class="form-select" id="prescriptionSelect">
+                                                    <option value="">Seçiniz</option>
+                                                    <option value="receteli">Reçeteli İlaç</option>
+                                                    <option value="recetesiz">Reçetesiz İlaç</option>
+                                                    <option value="ozel">Özel Reçeteli</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label class="form-label fw-semibold">Popüler İlaç Şablonları</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setMedicineTemplate('parol')">
+                                                    Parol
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setMedicineTemplate('aspirin')">
+                                                    Aspirin
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setMedicineTemplate('augmentin')">
+                                                    Augmentin
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setMedicineTemplate('voltaren')">
+                                                    Voltaren
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setMedicineTemplate('vitamin-c')">
+                                                    Vitamin C
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock Warning -->
+                        <div class="alert alert-info" id="stockWarning" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <div>
+                                    <strong>Stok Uyarısı:</strong>
+                                    <span id="stockWarningText"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <div>
+                                <a href="@Url.Action("Index", "Medicine")" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> İptal
+                                </a>
+                                <button type="button" class="btn btn-outline-warning ms-2" onclick="resetForm()">
+                                    <i class="fas fa-undo"></i> Formu Temizle
+                                </button>
+                            </div>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-save"></i> İlaç Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stockInput = document.querySelector('input[name="StockQuantity"]');
+            const stockWarning = document.getElementById('stockWarning');
+            const stockWarningText = document.getElementById('stockWarningText');
+            
+            // Stock quantity validation and warning
+            stockInput.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                
+                if (value === 0) {
+                    stockWarning.className = 'alert alert-danger';
+                    stockWarningText.textContent = 'Stok miktarı 0 olarak girildi. İlaç stokta bulunmayacak.';
+                    stockWarning.style.display = 'block';
+                } else if (value <= 10) {
+                    stockWarning.className = 'alert alert-warning';
+                    stockWarningText.textContent = 'Düşük stok miktarı girdiniz. Sistem otomatik uyarı verecektir.';
+                    stockWarning.style.display = 'block';
+                } else if (value > 1000) {
+                    stockWarning.className = 'alert alert-info';
+                    stockWarningText.textContent = 'Yüksek stok miktarı girdiniz. Depolama kapasitesini kontrol edin.';
+                    stockWarning.style.display = 'block';
+                } else {
+                    stockWarning.style.display = 'none';
+                }
+            });
+        });
+
+        function setStock(amount) {
+            document.querySelector('input[name="StockQuantity"]').value = amount;
+            document.querySelector('input[name="StockQuantity"]').dispatchEvent(new Event('input'));
+        }
+
+        function setMedicineTemplate(template) {
+            const nameInput = document.querySelector('input[name="Name"]');
+            const descriptionInput = document.querySelector('textarea[name="Description"]');
+            const stockInput = document.querySelector('input[name="StockQuantity"]');
+            const categorySelect = document.getElementById('categorySelect');
+            const prescriptionSelect = document.getElementById('prescriptionSelect');
+            
+            switch(template) {
+                case 'parol':
+                    nameInput.value = 'Parol 500mg';
+                    descriptionInput.value = 'Ateş düşürücü ve ağrı kesici. Parasetamol içerir. Günde 3-4 defa, yemeklerden sonra alınır.';
+                    stockInput.value = '100';
+                    categorySelect.value = 'ates-dusurucu';
+                    prescriptionSelect.value = 'recetesiz';
+                    break;
+                case 'aspirin':
+                    nameInput.value = 'Aspirin 100mg';
+                    descriptionInput.value = 'Kan sulandırıcı. Kalp hastalıkları ve damar tıkanıklığı önleme. Günde 1 defa, sabah aç karnına.';
+                    stockInput.value = '200';
+                    categorySelect.value = 'kalp';
+                    prescriptionSelect.value = 'receteli';
+                    break;
+                case 'augmentin':
+                    nameInput.value = 'Augmentin 1000mg';
+                    descriptionInput.value = 'Geniş spektrumlu antibiyotik. Amoksisilin + Klavulanik asit. Günde 2 defa, yemekle birlikte.';
+                    stockInput.value = '50';
+                    categorySelect.value = 'antibiyotik';
+                    prescriptionSelect.value = 'receteli';
+                    break;
+                case 'voltaren':
+                    nameInput.value = 'Voltaren 50mg';
+                    descriptionInput.value = 'Antiinflamatuar ağrı kesici. Diklofenak sodyum içerir. Günde 2-3 defa, yemeklerden sonra.';
+                    stockInput.value = '75';
+                    categorySelect.value = 'agri-kesici';
+                    prescriptionSelect.value = 'receteli';
+                    break;
+                case 'vitamin-c':
+                    nameInput.value = 'Vitamin C 1000mg';
+                    descriptionInput.value = 'Bağışıklık sistemi güçlendirici vitamin. Günde 1 defa, sabah kahvaltıdan sonra.';
+                    stockInput.value = '300';
+                    categorySelect.value = 'vitamin';
+                    prescriptionSelect.value = 'recetesiz';
+                    break;
+            }
+            
+            // Trigger stock warning check
+            stockInput.dispatchEvent(new Event('input'));
+        }
+
+        function resetForm() {
+            if (confirm('Formdaki tüm bilgiler silinecek. Emin misiniz?')) {
+                document.getElementById('medicineForm').reset();
+                document.getElementById('stockWarning').style.display = 'none';
+                document.getElementById('categorySelect').value = '';
+                document.getElementById('prescriptionSelect').value = '';
+            }
+        }
+    </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40,167,69,0.15);
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+        
+        .card-header.bg-gradient-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        }
+        
+        .form-section {
+            border-left: 4px solid transparent;
+            padding-left: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .alert {
+            border: none;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-info {
+            border-left-color: #17a2b8;
+        }
+        
+        .alert-warning {
+            border-left-color: #ffc107;
+        }
+        
+        .alert-danger {
+            border-left-color: #dc3545;
+        }
+        
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+}

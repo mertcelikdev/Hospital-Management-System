@@ -54,13 +54,13 @@ namespace HospitalManagementSystem.Controllers
             }
 
             // Get doctors for dropdown
-            var doctors = await _userService.GetUsersByRoleAsync(UserRole.Doctor);
+            var doctors = await _userService.GetUsersByRoleAsync("Doctor");
             ViewBag.Doctors = doctors;
 
             // Get patients for dropdown (if not a patient)
             if (userRole != "Patient")
             {
-                var patients = await _userService.GetUsersByRoleAsync(UserRole.Patient);
+                var patients = await _userService.GetUsersByRoleAsync("Patient");
                 ViewBag.Patients = patients;
             }
 
@@ -72,13 +72,13 @@ namespace HospitalManagementSystem.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var doctors = await _userService.GetUsersByRoleAsync(UserRole.Doctor);
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
                 ViewBag.Doctors = doctors;
-                
+
                 var userRole = HttpContext.Session.GetString("UserRole");
                 if (userRole != "Patient")
                 {
-                    var patients = await _userService.GetUsersByRoleAsync(UserRole.Patient);
+                    var patients = await _userService.GetUsersByRoleAsync("Patient");
                     ViewBag.Patients = patients;
                 }
                 
@@ -104,12 +104,12 @@ namespace HospitalManagementSystem.Controllers
             {
                 ModelState.AddModelError("", "Doctor is not available at the requested time");
                 
-                var doctors = await _userService.GetUsersByRoleAsync(UserRole.Doctor);
+                var doctors = await _userService.GetUsersByRoleAsync("Doctor");
                 ViewBag.Doctors = doctors;
-                
+
                 if (userRoleSession != "Patient")
                 {
-                    var patients = await _userService.GetUsersByRoleAsync(UserRole.Patient);
+                    var patients = await _userService.GetUsersByRoleAsync("Patient");
                     ViewBag.Patients = patients;
                 }
                 
@@ -136,8 +136,8 @@ namespace HospitalManagementSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(string id, AppointmentStatus status)
         {
-            var result = await _appointmentService.UpdateAppointmentStatusAsync(id, status);
-            if (!result)
+            var success = await _appointmentService.UpdateAppointmentStatusAsync(id, status);
+            if (!success)
             {
                 TempData["ErrorMessage"] = "Failed to update appointment status";
             }

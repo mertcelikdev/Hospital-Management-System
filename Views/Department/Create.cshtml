@@ -1,0 +1,215 @@
+@model HospitalManagementSystem.Models.Department
+
+@{
+    ViewData["Title"] = "Yeni Departman";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")" class="text-decoration-none">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Department")" class="text-decoration-none">Departman Yönetimi</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Yeni Departman</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="h3 mb-0">
+            <i class="fas fa-plus-circle me-2 text-primary"></i>Yeni Departman Ekle
+        </h2>
+        <p class="text-muted mb-0">Yeni bir hastane departmanı oluşturun</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Departman Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-building me-1"></i>Departman Adı <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Name" class="form-control" placeholder="örn: Kardiyoloji, Nöroloji..." />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Code" class="form-label">
+                                        <i class="fas fa-code me-1"></i>Departman Kodu <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Code" class="form-control text-uppercase" placeholder="örn: KRD, NRL..." maxlength="10" />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                    <div class="form-text">Maksimum 10 karakter, benzersiz olmalı</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Açıklama
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                      placeholder="Departmanın görev ve sorumluluklarını açıklayın..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="HeadOfDepartment" class="form-label">
+                                        <i class="fas fa-user-tie me-1"></i>Bölüm Başkanı
+                                    </label>
+                                    <input asp-for="HeadOfDepartment" class="form-control" placeholder="Dr. Ad Soyad" />
+                                    <span asp-validation-for="HeadOfDepartment" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Location" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Lokasyon
+                                    </label>
+                                    <input asp-for="Location" class="form-control" placeholder="örn: 3. Kat, A Blok" />
+                                    <span asp-validation-for="Location" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Telefon
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" placeholder="(0212) 555 0000" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>E-posta
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="departman@hastane.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    <i class="fas fa-toggle-on me-1 text-success"></i>Departman aktif olsun
+                                </label>
+                                <div class="form-text">Pasif departmanlar listede görünür ancak yeni atamalar yapılamaz</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Departmanı Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Önemli Notlar
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Departman adı</strong> benzersiz olmalıdır
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Departman kodu</strong> kısa ve anlamlı olmalıdır
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Açıklama</strong> departmanın işlevini net şekilde belirtmelidir
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-info text-info me-2"></i>
+                            <strong>Bölüm başkanı</strong> sonradan atanabilir
+                        </li>
+                        <li>
+                            <i class="fas fa-info text-info me-2"></i>
+                            <strong>İletişim bilgileri</strong> opsiyoneldir
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Departman Sonrası
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">
+                        Departman oluşturulduktan sonra:
+                    </p>
+                    <ul class="list-unstyled small">
+                        <li class="mb-1">• Kullanıcıları bu departmana atayabilirsiniz</li>
+                        <li class="mb-1">• Randevular departman bazında yönetilebilir</li>
+                        <li class="mb-1">• Raporlarda departman filtresi kullanılabilir</li>
+                        <li>• Departman bazında istatistikler görüntülenebilir</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Departman kodunu otomatik büyük harfe çevir
+        document.getElementById('Code').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+}

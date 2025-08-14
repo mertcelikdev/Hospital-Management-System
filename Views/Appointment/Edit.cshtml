@@ -1,0 +1,275 @@
+@model Appointment
+
+@{
+    ViewData["Title"] = "Randevu Düzenle";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-edit text-primary"></i>
+                        Randevu Düzenle
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Appointment")">Randevular</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Details", "Appointment", new { id = Model.Id })">Detaylar</a></li>
+                            <li class="breadcrumb-item active">Düzenle</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt"></i> Randevu Bilgilerini Güncelle
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" id="editForm" novalidate>
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PatientId" class="form-label">
+                                        <i class="fas fa-user text-primary"></i> Hasta ID
+                                    </label>
+                                    <input asp-for="PatientId" class="form-control" placeholder="Hasta ID'sini girin">
+                                    <span asp-validation-for="PatientId" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="DoctorId" class="form-label">
+                                        <i class="fas fa-user-md text-success"></i> Doktor ID
+                                    </label>
+                                    <input asp-for="DoctorId" class="form-control" placeholder="Doktor ID'sini girin">
+                                    <span asp-validation-for="DoctorId" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Type" class="form-label">
+                                        <i class="fas fa-stethoscope text-info"></i> Randevu Tipi
+                                    </label>
+                                    <select asp-for="Type" class="form-select">
+                                        <option value="">Randevu tipini seçin</option>
+                                        <option value="@AppointmentType.Consultation">Konsültasyon</option>
+                                        <option value="@AppointmentType.Surgery">Ameliyat</option>
+                                        <option value="@AppointmentType.Emergency">Acil</option>
+                                        <option value="@AppointmentType.Checkup">Kontrol</option>
+                                        <option value="@AppointmentType.Treatment">Tedavi</option>
+                                    </select>
+                                    <span asp-validation-for="Type" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Status" class="form-label">
+                                        <i class="fas fa-info-circle text-warning"></i> Durum
+                                    </label>
+                                    <select asp-for="Status" class="form-select">
+                                        <option value="@AppointmentStatus.Scheduled">Planlandı</option>
+                                        <option value="@AppointmentStatus.Completed">Tamamlandı</option>
+                                        <option value="@AppointmentStatus.Cancelled">İptal Edildi</option>
+                                        <option value="@AppointmentStatus.NoShow">Gelmedi</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="AppointmentDate" class="form-label">
+                                        <i class="fas fa-calendar text-primary"></i> Randevu Tarihi ve Saati
+                                    </label>
+                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control">
+                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">
+                                        <i class="fas fa-sticky-note text-warning"></i> Notlar
+                                    </label>
+                                    <textarea asp-for="Notes" class="form-control" rows="5" placeholder="Randevu hakkında notlar..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+
+                                <!-- Current Status Info -->
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-info-circle"></i> Mevcut Bilgiler
+                                    </h6>
+                                    <p class="mb-1"><strong>Oluşturulma:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                                    @if (Model.UpdatedAt.HasValue)
+                                    {
+                                        <p class="mb-0"><strong>Son Güncelleme:</strong> @Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times"></i> İptal
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo"></i> Sıfırla
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Kaydet
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Info Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Düzenleme İpuçları
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li><i class="fas fa-check text-success me-2"></i> Hasta ve Doktor ID'lerinin doğru olduğundan emin olun</li>
+                                <li><i class="fas fa-check text-success me-2"></i> Randevu tarihinin geçmiş bir tarih olmadığını kontrol edin</li>
+                                <li><i class="fas fa-check text-success me-2"></i> Uygun randevu tipini seçin</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li><i class="fas fa-info text-info me-2"></i> Notlar alanı isteğe bağlıdır</li>
+                                <li><i class="fas fa-info text-info me-2"></i> Durum değişiklikleri sistem tarafından takip edilir</li>
+                                <li><i class="fas fa-info text-info me-2"></i> Güncelleme tarihi otomatik olarak ayarlanır</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Form validation
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Show validation messages
+                this.classList.add('was-validated');
+                
+                // Focus on first invalid field
+                const firstInvalid = this.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+                
+                return false;
+            }
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+        });
+
+        function resetForm() {
+            if (confirm('Formu sıfırlamak istediğinize emin misiniz? Tüm değişiklikler kaybolacak.')) {
+                document.getElementById('editForm').reset();
+                document.getElementById('editForm').classList.remove('was-validated');
+            }
+        }
+
+        // Real-time validation
+        document.querySelectorAll('input, select, textarea').forEach(field => {
+            field.addEventListener('blur', function() {
+                if (this.checkValidity()) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            });
+        });
+
+        // Set minimum date to current date for appointment date
+        const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+        if (appointmentDateInput) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            appointmentDateInput.min = minDateTime;
+        }
+    </script>
+
+    <style>
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .is-valid {
+            border-color: #28a745 !important;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+    </style>
+}

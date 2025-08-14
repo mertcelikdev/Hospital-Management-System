@@ -1,0 +1,211 @@
+@model HospitalManagementSystem.Models.Department
+
+@{
+    ViewData["Title"] = "Departman Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")" class="text-decoration-none">Ana Sayfa</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Department")" class="text-decoration-none">Departman Yönetimi</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name - Düzenle</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="h3 mb-0">
+            <i class="fas fa-edit me-2 text-primary"></i>Departman Düzenle
+        </h2>
+        <p class="text-muted mb-0">@Model.Name departmanının bilgilerini güncelleyin</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Departman Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-building me-1"></i>Departman Adı <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Name" class="form-control" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Code" class="form-label">
+                                        <i class="fas fa-code me-1"></i>Departman Kodu <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Code" class="form-control text-uppercase" maxlength="10" />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                    <div class="form-text">Maksimum 10 karakter, benzersiz olmalı</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Açıklama
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="HeadOfDepartment" class="form-label">
+                                        <i class="fas fa-user-tie me-1"></i>Bölüm Başkanı
+                                    </label>
+                                    <input asp-for="HeadOfDepartment" class="form-control" />
+                                    <span asp-validation-for="HeadOfDepartment" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Location" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Lokasyon
+                                    </label>
+                                    <input asp-for="Location" class="form-control" />
+                                    <span asp-validation-for="Location" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Telefon
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>E-posta
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    <i class="fas fa-toggle-on me-1 text-success"></i>Departman aktif
+                                </label>
+                                <div class="form-text">Pasif departmanlar listede görünür ancak yeni atamalar yapılamaz</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Değişiklikleri Kaydet
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                                <i class="fas fa-eye me-1"></i>Detayları Görüntüle
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Departman Bilgileri
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Oluşturulma:</strong></td>
+                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        </tr>
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <tr>
+                                <td><strong>Son Güncelleme:</strong></td>
+                                <td>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td><strong>Durum:</strong></td>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Uyarılar
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Önemli:</strong> Departman kodunu değiştirirken dikkatli olun. 
+                        Bu kod sistemde başka yerlerde referans olarak kullanılabilir.
+                    </div>
+                    
+                    @if (!Model.IsActive)
+                    {
+                        <div class="alert alert-info small">
+                            <i class="fas fa-pause-circle me-2"></i>
+                            <strong>Pasif Departman:</strong> Bu departman şu anda pasif durumda. 
+                            Yeni kullanıcı atamaları yapılamaz.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Departman kodunu otomatik büyük harfe çevir
+        document.getElementById('Code').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+}

@@ -1,145 +1,93 @@
-using HospitalManagementSystem.Models;
 using MongoDB.Driver;
+using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.Services
 {
-    public interface IMedicineService
-    {
-        Task<List<Medicine>> GetAllMedicinesAsync();
-        Task<Medicine?> GetMedicineByIdAsync(string id);
-        Task<List<Medicine>> GetMedicinesByCategoryAsync(MedicineCategory category);
-        Task<List<Medicine>> GetLowStockMedicinesAsync();
-        Task<List<Medicine>> SearchMedicinesAsync(string searchTerm);
-        Task<Medicine> CreateMedicineAsync(Medicine medicine);
-        Task<bool> UpdateMedicineAsync(string id, Medicine medicine);
-        Task<bool> UpdateStockAsync(string id, int newQuantity);
-        Task<bool> DeleteMedicineAsync(string id);
-        Task<List<MedicineTransaction>> GetMedicineTransactionsAsync(string medicineId);
-        Task<MedicineTransaction> CreateTransactionAsync(MedicineTransaction transaction);
-    }
-
-    public class MedicineService : IMedicineService
+    public class MedicineService
     {
         private readonly IMongoCollection<Medicine> _medicines;
-        private readonly IMongoCollection<MedicineTransaction> _transactions;
 
-        public MedicineService(IMongoDbContext context)
+        public MedicineService(IMongoDatabase database)
         {
-            _medicines = context.GetCollection<Medicine>("Medicines");
-            _transactions = context.GetCollection<MedicineTransaction>("MedicineTransactions");
+            _medicines = database.GetCollection<Medicine>("Medicines");
         }
 
         public async Task<List<Medicine>> GetAllMedicinesAsync()
         {
-            return await _medicines.Find(x => x.IsActive).ToListAsync();
+            return await _medicines.Find(_ => true).ToListAsync();
         }
 
-        public async Task<Medicine?> GetMedicineByIdAsync(string id)
+        public async Task<Medicine> GetMedicineByIdAsync(string id)
         {
-            return await _medicines.Find(x => x.Id == id && x.IsActive).FirstOrDefaultAsync();
-        }
-
-        public async Task<List<Medicine>> GetMedicinesByCategoryAsync(MedicineCategory category)
-        {
-            return await _medicines.Find(x => x.Category == category && x.IsActive).ToListAsync();
-        }
-
-        public async Task<List<Medicine>> GetLowStockMedicinesAsync()
-        {
-            return await _medicines.Find(x => x.StockQuantity <= x.MinimumStock && x.IsActive).ToListAsync();
-        }
-
-        public async Task<List<Medicine>> SearchMedicinesAsync(string searchTerm)
-        {
-            var filter = Builders<Medicine>.Filter.And(
-                Builders<Medicine>.Filter.Eq(x => x.IsActive, true),
-                Builders<Medicine>.Filter.Or(
-                    Builders<Medicine>.Filter.Regex(x => x.Name, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
-                    Builders<Medicine>.Filter.Regex(x => x.GenericName, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
-                    Builders<Medicine>.Filter.Regex(x => x.Manufacturer, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i"))
-                )
-            );
-
-            return await _medicines.Find(filter).ToListAsync();
+            return await _medicines.Find(m => m.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task<Medicine> CreateMedicineAsync(Medicine medicine)
         {
-            medicine.CreatedAt = DateTime.UtcNow;
-            medicine.UpdatedAt = DateTime.UtcNow;
-            
             await _medicines.InsertOneAsync(medicine);
             return medicine;
         }
 
-        public async Task<bool> UpdateMedicineAsync(string id, Medicine medicine)
+        public async Task UpdateMedicineAsync(string id, Medicine medicine)
         {
-            medicine.UpdatedAt = DateTime.UtcNow;
-            var result = await _medicines.ReplaceOneAsync(x => x.Id == id, medicine);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            await _medicines.ReplaceOneAsync(m => m.Id == id, medicine);
         }
 
-        public async Task<bool> UpdateStockAsync(string id, int newQuantity)
+        public async Task DeleteMedicineAsync(string id)
         {
-            var update = Builders<Medicine>.Update
-                .Set(x => x.StockQuantity, newQuantity)
-                .Set(x => x.UpdatedAt, DateTime.UtcNow);
-            
-            var result = await _medicines.UpdateOneAsync(x => x.Id == id, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            await _medicines.DeleteOneAsync(m => m.Id == id);
         }
 
-        public async Task<bool> DeleteMedicineAsync(string id)
+        public async Task<List<Medicine>> GetMedicinesByCategoryAsync(MedicineCategory category)
         {
-            var update = Builders<Medicine>.Update.Set(x => x.IsActive, false);
-            var result = await _medicines.UpdateOneAsync(x => x.Id == id, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            return await _medicines.Find(m => m.Category == category).ToListAsync();
         }
 
-        public async Task<List<MedicineTransaction>> GetMedicineTransactionsAsync(string medicineId)
+        public async Task<List<Medicine>> GetLowStockMedicinesAsync()
         {
-            return await _transactions.Find(x => x.MedicineId == medicineId)
-                .SortByDescending(x => x.TransactionDate)
-                .ToListAsync();
+            return await _medicines.Find(m => m.StockQuantity <= m.MinimumStock).ToListAsync();
         }
 
-        public async Task<MedicineTransaction> CreateTransactionAsync(MedicineTransaction transaction)
+        public async Task<List<Medicine>> GetNearExpiryMedicinesAsync()
         {
-            // Get current medicine stock
-            var medicine = await GetMedicineByIdAsync(transaction.MedicineId);
+            var oneMonthFromNow = DateTime.UtcNow.AddMonths(1);
+            return await _medicines.Find(m => m.ExpiryDate.HasValue && m.ExpiryDate.Value <= oneMonthFromNow).ToListAsync();
+        }
+
+        public async Task UpdateStockAsync(string id, int quantity, string operation)
+        {
+            var medicine = await GetMedicineByIdAsync(id);
             if (medicine != null)
             {
-                transaction.QuantityBefore = medicine.StockQuantity;
-                
-                // Calculate new quantity based on transaction type
-                int newQuantity = medicine.StockQuantity;
-                switch (transaction.Type)
+                int newStock;
+                if (operation == "add")
                 {
-                    case TransactionType.StockIn:
-                        newQuantity += transaction.Quantity;
-                        break;
-                    case TransactionType.StockOut:
-                    case TransactionType.Dispensed:
-                    case TransactionType.Expired:
-                    case TransactionType.Damaged:
-                        newQuantity -= transaction.Quantity;
-                        break;
-                    case TransactionType.Adjustment:
-                        newQuantity = transaction.Quantity; // Direct assignment for adjustments
-                        break;
+                    newStock = medicine.StockQuantity + quantity;
+                }
+                else if (operation == "reduce")
+                {
+                    newStock = Math.Max(0, medicine.StockQuantity - quantity);
+                }
+                else
+                {
+                    newStock = quantity;
                 }
 
-                transaction.QuantityAfter = newQuantity;
-                transaction.CreatedAt = DateTime.UtcNow;
-
-                // Insert transaction
-                await _transactions.InsertOneAsync(transaction);
-
-                // Update medicine stock
-                await UpdateStockAsync(transaction.MedicineId, newQuantity);
+                var update = Builders<Medicine>.Update
+                    .Set(m => m.StockQuantity, newStock)
+                    .Set(m => m.UpdatedAt, DateTime.UtcNow);
+                    
+                await _medicines.UpdateOneAsync(m => m.Id == id, update);
             }
+        }
 
-            return transaction;
+        public async Task UpdatePriceAsync(string id, decimal price)
+        {
+            var update = Builders<Medicine>.Update
+                .Set(m => m.Price, price)
+                .Set(m => m.UpdatedAt, DateTime.UtcNow);
+                
+            await _medicines.UpdateOneAsync(m => m.Id == id, update);
         }
     }
 }

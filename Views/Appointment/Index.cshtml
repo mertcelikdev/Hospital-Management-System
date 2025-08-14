@@ -1,0 +1,686 @@
+@model List<HospitalManagementSystem.ViewModels.AppointmentViewModel>
+
+@{
+    ViewData["Title"] = "Randevu Yönetimi";
+    var userRole = Context.Session.GetString("UserRole");
+    var canEdit = userRole == "Doctor" || userRole == "Staff";
+    var canCancel = userRole == "Doctor" || userRole == "Staff";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sol Taraf - Filtreler -->
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtreler
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Arama -->
+                    <div class="mb-3">
+                        <label class="form-label">Hasta Ara</label>
+                        <input type="text" class="form-control" id="searchInput" placeholder="TC No, İsim...">
+                    </div>
+
+                    <!-- Tarih Aralığı -->
+                    <div class="mb-3">
+                        <label class="form-label">Başlangıç Tarihi</label>
+                        <input type="date" class="form-control" id="dateFrom">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bitiş Tarihi</label>
+                        <input type="date" class="form-control" id="dateTo">
+                    </div>
+
+                    <!-- Durum -->
+                    <div class="mb-3">
+                        <label class="form-label">Durum</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="Planlandı">Planlandı</option>
+                            <option value="Onaylandı">Onaylandı</option>
+                            <option value="Devam">Devam Ediyor</option>
+                            <option value="Tamamlandı">Tamamlandı</option>
+                            <option value="İptalEdildi">İptal Edildi</option>
+                            <option value="Gelmedi">Gelmedi</option>
+                        </select>
+                    </div>
+
+                    <!-- Departman -->
+                    <div class="mb-3">
+                        <label class="form-label">Departman</label>
+                        <select class="form-select" id="departmentFilter">
+                            <option value="">Tüm Departmanlar</option>
+                            <option value="Kardiyoloji">Kardiyoloji</option>
+                            <option value="Noroloji">Nöroloji</option>
+                            <option value="Ortopedi">Ortopedi</option>
+                            <option value="Gocuk">Çocuk</option>
+                            <option value="Kadin">Kadın Doğum</option>
+                            <option value="Dahiliye">Dahiliye</option>
+                            <option value="Cerrahi">Cerrahi</option>
+                            <option value="Göz">Göz</option>
+                            <option value="KulakBurunBogaz">KBB</option>
+                            <option value="Acil">Acil</option>
+                        </select>
+                    </div>
+
+                    <!-- Randevu Türü -->
+                    <div class="mb-3">
+                        <label class="form-label">Randevu Türü</label>
+                        <select class="form-select" id="typeFilter">
+                            <option value="">Tüm Türler</option>
+                            <option value="Muayene">Muayene</option>
+                            <option value="Kontrol">Kontrol</option>
+                            <option value="Acil">Acil</option>
+                            <option value="Ameliyat">Ameliyat</option>
+                            <option value="İnceleme">İnceleme</option>
+                            <option value="CheckUp">Check-up</option>
+                            <option value="Tedavi">Tedavi</option>
+                        </select>
+                    </div>
+
+                    <!-- Sıralama -->
+                    <div class="mb-3">
+                        <label class="form-label">Sıralama</label>
+                        <select class="form-select" id="sortBy">
+                            <option value="date-desc">Tarih (Yeni → Eski)</option>
+                            <option value="date-asc">Tarih (Eski → Yeni)</option>
+                            <option value="patient-asc">Hasta Adı (A → Z)</option>
+                            <option value="patient-desc">Hasta Adı (Z → A)</option>
+                            <option value="doctor-asc">Doktor Adı (A → Z)</option>
+                            <option value="status-asc">Durum</option>
+                        </select>
+                    </div>
+
+                    <!-- Butonlar -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="applyFilters()">
+                            <i class="fas fa-search me-2"></i>Filtrele
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-undo me-2"></i>Temizle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Taraf - Liste -->
+        <div class="col-md-9">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-calendar-alt text-primary"></i>
+                        Randevu Yönetimi
+                    </h2>
+                    <p class="text-muted mb-0">Toplam <span id="totalCount">@Model.Count</span> randevu</p>
+                </div>
+                @if (canEdit)
+                {
+                    <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Yeni Randevu
+                    </a>
+                }
+            </div>
+
+            <!-- İstatistik Kartları -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Bugün</h5>
+                            <h3 class="mb-0" id="todayCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Tamamlanan</h5>
+                            <h3 class="mb-0" id="completedCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Bekleyen</h5>
+                            <h3 class="mb-0" id="pendingCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">İptal</h5>
+                            <h3 class="mb-0" id="cancelledCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Randevu Tablosu -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i> Randevu Listesi
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="printTable()">
+                                <i class="fas fa-print"></i> Yazdır
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="appointmentsTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Tarih & Saat</th>
+                                    <th>Hasta</th>
+                                    <th>Doktor</th>
+                                    <th>Departman</th>
+                                    <th>Tür</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsTableBody">
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var appointment in Model)
+                                    {
+                                        <tr data-appointment='@System.Text.Json.JsonSerializer.Serialize(appointment)'>
+                                            <td>
+                                                <div class="fw-semibold">@appointment.AppointmentDate.ToString("dd.MM.yyyy")</div>
+                                                <small class="text-muted">@appointment.AppointmentDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        <i class="fas fa-user-injured text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">@appointment.PatientName</div>
+                                                        <small class="text-muted">ID: @appointment.PatientId</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        <i class="fas fa-user-md text-success"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">@appointment.DoctorName</div>
+                                                        <small class="text-muted">@appointment.Department</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@appointment.Department</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@appointment.Type</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var statusClass = appointment.Status switch
+                                                    {
+                                                        "Planlandı" => "bg-primary",
+                                                        "Onaylandı" => "bg-info", 
+                                                        "Devam" => "bg-warning",
+                                                        "Tamamlandı" => "bg-success",
+                                                        "İptalEdildi" => "bg-danger",
+                                                        "Gelmedi" => "bg-dark",
+                                                        _ => "bg-secondary"
+                                                    };
+                                                }
+                                                <span class="badge @statusClass">@appointment.Status</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <!-- Herkes görüntüleyebilir -->
+                                                    <a href="@Url.Action("Details", "Appointment", new { id = appointment.Id })" 
+                                                       class="btn btn-sm btn-outline-info" title="Detaylar">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    
+                                                    @if (canEdit)
+                                                    {
+                                                        <!-- Sadece Doktor ve Staff düzenleyebilir -->
+                                                        <a href="@Url.Action("Edit", "Appointment", new { id = appointment.Id })" 
+                                                           class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    }
+                                                    
+                                                    @if (canCancel && appointment.Status != "İptalEdildi")
+                                                    {
+                                                        <!-- Sadece Doktor ve Staff iptal edebilir -->
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                onclick="cancelAppointment('@appointment.Id')" title="İptal Et">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                                <p>Henüz randevu bulunmamaktadır.</p>
+                                                @if (canEdit)
+                                                {
+                                                    <a href="@Url.Action("Create", "Appointment")" class="btn btn-primary">
+                                                        <i class="fas fa-plus"></i> İlk Randevuyu Oluştur
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Sayfa başına:</span>
+                            <select class="form-select form-select-sm d-inline-block w-auto ms-1" id="pageSize">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagination">
+                                <!-- Pagination will be generated by JavaScript -->
+                            </ul>
+                        </nav>
+                        <div>
+                            <span class="text-muted" id="paginationInfo">1-25 / 100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let allAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+    let filteredAppointments = [...allAppointments];
+    let currentPage = 1;
+    let pageSize = 25;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        updateStatistics();
+        applyFilters();
+        
+        // Event listeners for real-time filtering
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('departmentFilter').addEventListener('change', applyFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+        document.getElementById('dateFrom').addEventListener('change', applyFilters);
+        document.getElementById('dateTo').addEventListener('change', applyFilters);
+        document.getElementById('sortBy').addEventListener('change', applyFilters);
+        document.getElementById('pageSize').addEventListener('change', function() {
+            pageSize = parseInt(this.value);
+            currentPage = 1;
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const department = document.getElementById('departmentFilter').value;
+        const type = document.getElementById('typeFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const sortBy = document.getElementById('sortBy').value;
+
+        // Filter appointments
+        filteredAppointments = allAppointments.filter(appointment => {
+            const matchesSearch = !search || 
+                appointment.PatientName.toLowerCase().includes(search) ||
+                appointment.DoctorName.toLowerCase().includes(search) ||
+                appointment.PatientId.toLowerCase().includes(search);
+                
+            const matchesStatus = !status || appointment.Status === status;
+            const matchesDepartment = !department || appointment.Department === department;
+            const matchesType = !type || appointment.Type === type;
+            
+            const appointmentDate = new Date(appointment.AppointmentDate);
+            const matchesDateFrom = !dateFrom || appointmentDate >= new Date(dateFrom);
+            const matchesDateTo = !dateTo || appointmentDate <= new Date(dateTo);
+
+            return matchesSearch && matchesStatus && matchesDepartment && 
+                   matchesType && matchesDateFrom && matchesDateTo;
+        });
+
+        // Sort appointments
+        sortAppointments(sortBy);
+        
+        // Update display
+        displayAppointments();
+        updatePagination();
+        updateStatistics();
+    }
+
+    function sortAppointments(sortBy) {
+        switch(sortBy) {
+            case 'date-desc':
+                filteredAppointments.sort((a, b) => new Date(b.AppointmentDate) - new Date(a.AppointmentDate));
+                break;
+            case 'date-asc':
+                filteredAppointments.sort((a, b) => new Date(a.AppointmentDate) - new Date(b.AppointmentDate));
+                break;
+            case 'patient-asc':
+                filteredAppointments.sort((a, b) => a.PatientName.localeCompare(b.PatientName, 'tr'));
+                break;
+            case 'patient-desc':
+                filteredAppointments.sort((a, b) => b.PatientName.localeCompare(a.PatientName, 'tr'));
+                break;
+            case 'doctor-asc':
+                filteredAppointments.sort((a, b) => a.DoctorName.localeCompare(b.DoctorName, 'tr'));
+                break;
+            case 'status-asc':
+                filteredAppointments.sort((a, b) => a.Status.localeCompare(b.Status, 'tr'));
+                break;
+        }
+    }
+
+    function displayAppointments() {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const appointmentsToShow = filteredAppointments.slice(startIndex, endIndex);
+
+        const tbody = document.getElementById('appointmentsTableBody');
+        
+        if (appointmentsToShow.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <p>Arama kriterlerinize uygun randevu bulunamadı.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = appointmentsToShow.map(appointment => {
+            const date = new Date(appointment.AppointmentDate);
+            const statusClass = getStatusClass(appointment.Status);
+            const canEdit = @Json.Serialize(canEdit);
+            const canCancel = @Json.Serialize(canCancel);
+            
+            return `
+                <tr>
+                    <td>
+                        <div class="fw-semibold">${date.toLocaleDateString('tr-TR')}</div>
+                        <small class="text-muted">${date.toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</small>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-user-injured text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">${appointment.PatientName}</div>
+                                <small class="text-muted">ID: ${appointment.PatientId}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-user-md text-success"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">${appointment.DoctorName}</div>
+                                <small class="text-muted">${appointment.Department}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${appointment.Department}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">${appointment.Type}</span>
+                    </td>
+                    <td>
+                        <span class="badge ${statusClass}">${appointment.Status}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="/Appointment/Details/${appointment.Id}" 
+                               class="btn btn-sm btn-outline-info" title="Detaylar">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            ${canEdit ? `
+                                <a href="/Appointment/Edit/${appointment.Id}" 
+                                   class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            ` : ''}
+                            ${canCancel && appointment.Status !== 'İptalEdildi' ? `
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="cancelAppointment('${appointment.Id}')" title="İptal Et">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'Planlandı': return 'bg-primary';
+            case 'Onaylandı': return 'bg-info';
+            case 'Devam': return 'bg-warning';
+            case 'Tamamlandı': return 'bg-success';
+            case 'İptalEdildi': return 'bg-danger';
+            case 'Gelmedi': return 'bg-dark';
+            default: return 'bg-secondary';
+        }
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredAppointments.length / pageSize);
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            document.getElementById('paginationInfo').textContent = `1-${filteredAppointments.length} / ${filteredAppointments.length}`;
+            return;
+        }
+
+        let paginationHTML = '';
+        
+        // Previous button
+        paginationHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Önceki</a>
+            </li>
+        `;
+
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(1)">1</a></li>`;
+            if (startPage > 2) {
+                paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>
+            `;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+            paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a></li>`;
+        }
+
+        // Next button
+        paginationHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Sonraki</a>
+            </li>
+        `;
+
+        pagination.innerHTML = paginationHTML;
+
+        // Update pagination info
+        const startRecord = (currentPage - 1) * pageSize + 1;
+        const endRecord = Math.min(currentPage * pageSize, filteredAppointments.length);
+        document.getElementById('paginationInfo').textContent = `${startRecord}-${endRecord} / ${filteredAppointments.length}`;
+    }
+
+    function changePage(page) {
+        const totalPages = Math.ceil(filteredAppointments.length / pageSize);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            displayAppointments();
+            updatePagination();
+        }
+    }
+
+    function updateStatistics() {
+        const today = new Date().toDateString();
+        
+        document.getElementById('totalCount').textContent = filteredAppointments.length;
+        document.getElementById('todayCount').textContent = filteredAppointments.filter(a => 
+            new Date(a.AppointmentDate).toDateString() === today).length;
+        document.getElementById('completedCount').textContent = filteredAppointments.filter(a => 
+            a.Status === 'Tamamlandı').length;
+        document.getElementById('pendingCount').textContent = filteredAppointments.filter(a => 
+            a.Status === 'Planlandı' || a.Status === 'Onaylandı').length;
+        document.getElementById('cancelledCount').textContent = filteredAppointments.filter(a => 
+            a.Status === 'İptalEdildi').length;
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('departmentFilter').value = '';
+        document.getElementById('typeFilter').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.getElementById('sortBy').value = 'date-desc';
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function cancelAppointment(id) {
+        if (confirm('Bu randevuyu iptal etmek istediğinize emin misiniz?')) {
+            fetch(`/Appointment/Cancel/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Update local data
+                    const appointment = allAppointments.find(a => a.Id === id);
+                    if (appointment) {
+                        appointment.Status = 'İptalEdildi';
+                    }
+                    applyFilters();
+                } else {
+                    alert('Randevu iptal edilirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu.');
+            });
+        }
+    }
+
+    function exportToExcel() {
+        // TODO: Implement Excel export
+        alert('Excel export özelliği yakında eklenecek.');
+    }
+
+    function printTable() {
+        window.print();
+    }
+</script>
+
+<style>
+    .page-link {
+        color: #007bff;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.25rem;
+        margin-right: 0.25rem;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .form-select-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>

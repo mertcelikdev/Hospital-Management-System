@@ -1,97 +1,121 @@
-using HospitalManagementSystem.Models;
 using MongoDB.Driver;
+using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.Services
 {
-    public interface IUserService
-    {
-        Task<User?> GetUserByIdAsync(string id);
-        Task<User?> GetUserByEmailAsync(string email);
-        Task<List<User>> GetUsersByRoleAsync(UserRole role);
-        Task<List<User>> GetAllUsersAsync();
-        Task<User> CreateUserAsync(User user);
-        Task<bool> UpdateUserAsync(string id, User user);
-        Task<bool> DeleteUserAsync(string id);
-        Task<bool> VerifyPasswordAsync(string email, string password);
-        Task<string> HashPasswordAsync(string password);
-        Task<bool> ChangePasswordAsync(string userId, string newPassword);
-    }
-
-    public class UserService : IUserService
+    public class UserService
     {
         private readonly IMongoCollection<User> _users;
 
-        public UserService(IMongoDbContext context)
+        public UserService(IMongoDatabase database)
         {
-            _users = context.GetCollection<User>("Users");
-        }
-
-        public async Task<User?> GetUserByIdAsync(string id)
-        {
-            return await _users.Find(x => x.Id == id && x.IsActive).FirstOrDefaultAsync();
-        }
-
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            return await _users.Find(x => x.Email == email && x.IsActive).FirstOrDefaultAsync();
-        }
-
-        public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
-        {
-            return await _users.Find(x => x.Role == role && x.IsActive).ToListAsync();
+            _users = database.GetCollection<User>("Users");
         }
 
         public async Task<List<User>> GetAllUsersAsync()
         {
-            return await _users.Find(x => x.IsActive).ToListAsync();
+            return await _users.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<User> GetUserByIdAsync(string id)
+        {
+            return await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task<User> CreateUserAsync(User user)
         {
-            user.PasswordHash = await HashPasswordAsync(user.PasswordHash);
-            user.CreatedAt = DateTime.UtcNow;
-            user.UpdatedAt = DateTime.UtcNow;
-            
             await _users.InsertOneAsync(user);
             return user;
         }
 
-        public async Task<bool> UpdateUserAsync(string id, User user)
+        public async Task UpdateUserAsync(string id, User user)
         {
             user.UpdatedAt = DateTime.UtcNow;
-            var result = await _users.ReplaceOneAsync(x => x.Id == id, user);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            await _users.ReplaceOneAsync(u => u.Id == id, user);
         }
 
-        public async Task<bool> DeleteUserAsync(string id)
+        public async Task DeleteUserAsync(string id)
         {
-            var update = Builders<User>.Update.Set(x => x.IsActive, false);
-            var result = await _users.UpdateOneAsync(x => x.Id == id, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            await _users.DeleteOneAsync(u => u.Id == id);
         }
 
-        public async Task<bool> VerifyPasswordAsync(string email, string password)
+        public async Task<List<User>> GetDoctorsAsync()
+        {
+            return await _users.Find(u => u.Role == "Doctor").ToListAsync();
+        }
+
+        public async Task<List<User>> GetPatientsAsync()
+        {
+            return await _users.Find(u => u.Role == "Patient").ToListAsync();
+        }
+
+        public async Task<List<User>> GetNursesAsync()
+        {
+            return await _users.Find(u => u.Role == "Nurse").ToListAsync();
+        }
+
+        public async Task<List<User>> GetStaffAsync()
+        {
+            return await _users.Find(u => u.Role == "Staff").ToListAsync();
+        }
+
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _users.Find(u => u.Role == role).ToListAsync();
+        }
+
+        public async Task<List<User>> GetDoctorPatientsAsync(string doctorId)
+        {
+            return await _users.Find(u => u.AssignedDoctorId == doctorId).ToListAsync();
+        }
+
+        public async Task<List<User>> GetNursePatientsAsync(string nurseId)
+        {
+            return await _users.Find(u => u.AssignedNurseId == nurseId).ToListAsync();
+        }
+
+        public async Task AssignPatientToDoctorAsync(string patientId, string doctorId)
+        {
+            var update = Builders<User>.Update
+                .Set(u => u.AssignedDoctorId, doctorId)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            
+            await _users.UpdateOneAsync(u => u.Id == patientId, update);
+
+            // Doktorun hasta listesine ekle
+            var doctorUpdate = Builders<User>.Update
+                .AddToSet(u => u.PatientIds, patientId)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            
+            await _users.UpdateOneAsync(u => u.Id == doctorId, doctorUpdate);
+        }
+
+        public async Task AssignPatientToNurseAsync(string patientId, string nurseId)
+        {
+            var update = Builders<User>.Update
+                .Set(u => u.AssignedNurseId, nurseId)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            
+            await _users.UpdateOneAsync(u => u.Id == patientId, update);
+
+            // Hemşirenin hasta listesine ekle
+            var nurseUpdate = Builders<User>.Update
+                .AddToSet(u => u.PatientIds, patientId)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            
+            await _users.UpdateOneAsync(u => u.Id == nurseId, nurseUpdate);
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ValidateUserAsync(string email, string password)
         {
             var user = await GetUserByEmailAsync(email);
-            if (user == null) return false;
-            
-            return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-        }
-
-        public async Task<string> HashPasswordAsync(string password)
-        {
-            return await Task.FromResult(BCrypt.Net.BCrypt.HashPassword(password));
-        }
-
-        public async Task<bool> ChangePasswordAsync(string userId, string newPassword)
-        {
-            var hashedPassword = await HashPasswordAsync(newPassword);
-            var update = Builders<User>.Update
-                .Set(x => x.PasswordHash, hashedPassword)
-                .Set(x => x.UpdatedAt, DateTime.UtcNow);
-            
-            var result = await _users.UpdateOneAsync(x => x.Id == userId, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            return user != null && user.IsActive;
+            // TODO: Implement proper password hashing and validation
         }
     }
 }

@@ -6,10 +6,20 @@ namespace HospitalManagementSystem.Models
 {
     public enum PrescriptionStatus
     {
-        Pending,
-        Dispensed,
+        Active,
         Completed,
-        Cancelled
+        Cancelled,
+        Expired
+    }
+
+    public class PrescriptionMedicine
+    {
+        public string MedicineId { get; set; } = string.Empty;
+        public string MedicineName { get; set; } = string.Empty;
+        public string Dosage { get; set; } = string.Empty;
+        public string Frequency { get; set; } = string.Empty;
+        public int Duration { get; set; } // days
+        public string Instructions { get; set; } = string.Empty;
     }
 
     public class Prescription
@@ -24,49 +34,30 @@ namespace HospitalManagementSystem.Models
         [Required]
         public string DoctorId { get; set; } = string.Empty;
 
-        public string MedicalRecordId { get; set; } = string.Empty;
+        public string? NurseId { get; set; }
 
         [Required]
-        public DateTime PrescriptionDate { get; set; } = DateTime.UtcNow;
+        public string Diagnosis { get; set; } = string.Empty;
 
-        public List<PrescriptionItem> Items { get; set; } = new List<PrescriptionItem>();
-
-        public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Pending;
+        [Required]
+        public List<PrescriptionMedicine> Medicines { get; set; } = new();
 
         public string Notes { get; set; } = string.Empty;
 
+        public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Active;
+
+        public DateTime PrescriptionDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
-        // Navigation properties
-        public User? Patient { get; set; }
-        public User? Doctor { get; set; }
-    }
+        public bool IsActive => Status == PrescriptionStatus.Active;
 
-    public class PrescriptionItem
-    {
-        [Required]
-        public string MedicineId { get; set; } = string.Empty;
-
-        [Required]
-        public string MedicineName { get; set; } = string.Empty;
-
-        [Required]
-        public int Quantity { get; set; }
-
-        [Required]
-        public string Dosage { get; set; } = string.Empty;
-
-        [Required]
-        public string Frequency { get; set; } = string.Empty;
-
-        [Required]
-        public int DurationDays { get; set; }
-
-        public string Instructions { get; set; } = string.Empty;
-
-        // Navigation properties
-        public Medicine? Medicine { get; set; }
+        public bool IsExpired => EndDate.HasValue && EndDate.Value < DateTime.UtcNow;
     }
 }

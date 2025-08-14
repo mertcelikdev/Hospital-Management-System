@@ -1,4 +1,4 @@
-using HospitalManagementSystem.Models.DTOs;
+using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,19 +28,26 @@ namespace HospitalManagementSystem.Controllers
             }
 
             var result = await _authService.LoginAsync(model);
-            if (result == null)
+            if (result == null || !result.IsSuccess)
             {
                 ModelState.AddModelError("", "Invalid email or password");
                 return View(model);
             }
 
             // Store token in session or cookie
-            HttpContext.Session.SetString("AuthToken", result.Token);
-            HttpContext.Session.SetString("UserRole", result.User.Role.ToString());
-            HttpContext.Session.SetString("UserId", result.User.Id);
-            HttpContext.Session.SetString("UserName", result.User.FullName);
+            if (!string.IsNullOrEmpty(result.Token))
+            {
+                HttpContext.Session.SetString("AuthToken", result.Token);
+            }
+            
+            if (result.User != null)
+            {
+                HttpContext.Session.SetString("UserRole", result.User.Role);
+                HttpContext.Session.SetString("UserId", result.User.Id);
+                HttpContext.Session.SetString("UserName", result.User.Name);
+            }
 
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -58,19 +65,26 @@ namespace HospitalManagementSystem.Controllers
             }
 
             var result = await _authService.RegisterAsync(model);
-            if (result == null)
+            if (result == null || !result.IsSuccess)
             {
-                ModelState.AddModelError("", "User with this email already exists");
+                ModelState.AddModelError("", result?.Message ?? "User with this email already exists");
                 return View(model);
             }
 
             // Store token in session
-            HttpContext.Session.SetString("AuthToken", result.Token);
-            HttpContext.Session.SetString("UserRole", result.User.Role.ToString());
-            HttpContext.Session.SetString("UserId", result.User.Id);
-            HttpContext.Session.SetString("UserName", result.User.FullName);
+            if (!string.IsNullOrEmpty(result.Token))
+            {
+                HttpContext.Session.SetString("AuthToken", result.Token);
+            }
+            
+            if (result.User != null)
+            {
+                HttpContext.Session.SetString("UserRole", result.User.Role);
+                HttpContext.Session.SetString("UserId", result.User.Id);
+                HttpContext.Session.SetString("UserName", result.User.Name);
+            }
 
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -108,7 +122,7 @@ namespace HospitalManagementSystem.Controllers
             }
 
             TempData["SuccessMessage"] = "Password changed successfully";
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

@@ -1,19 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Hospital Management System</title>
+    
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="~/css/site.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div class="container">
-                <a class="navbar-brand" href="@Url.Action("Index", "Dashboard")">
-                    <i class="fas fa-hospital"></i> Hospital Management System
+                <a class="navbar-brand fw-bold" href="@Url.Action("Index", "Dashboard")">>
+                    <i class="fas fa-hospital"></i>
+                    Hospital MS
                 </a>
                 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -22,91 +29,116 @@
                 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
-                            @if (Context.Session.GetString("UserId") != null)
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Dashboard")">>
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-users"></i> Kullanıcılar
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "User")">
+                                    <i class="fas fa-list"></i> Kullanıcı Listesi
+                                </a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Create", "User")">
+                                    <i class="fas fa-plus"></i> Yeni Kullanıcı
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-calendar-alt"></i> Randevular
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Appointment")">
+                                    <i class="fas fa-list"></i> Randevu Listesi
+                                </a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Create", "Appointment")">
+                                    <i class="fas fa-plus"></i> Yeni Randevu
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-pills"></i> İlaçlar
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Medicine")">
+                                    <i class="fas fa-list"></i> İlaç Listesi
+                                </a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Create", "Medicine")">
+                                    <i class="fas fa-plus"></i> Yeni İlaç
+                                </a></li>
+                            </ul>
+                        </li>
+                        
+                        @if (userRole == "Admin")
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Index", "Dashboard")">
-                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cogs"></i> Yönetim
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "User")">
+                                        <i class="fas fa-users"></i> Kullanıcı Yönetimi
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Department")">
+                                        <i class="fas fa-building"></i> Departman Yönetimi
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Medicine")">
+                                        <i class="fas fa-pills"></i> İlaç Yönetimi
+                                    </a></li>
+                                </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Index", "Appointments")">
-                                    <i class="fas fa-calendar-check"></i> Appointments
-                                </a>
-                            </li>
-                            
-                            @{
-                                var userRole = Context.Session.GetString("UserRole");
-                            }
-                            
-                            @if (userRole == "Doctor" || userRole == "Nurse" || userRole == "Admin")
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-user-md"></i> Medical
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-medical"></i> Medical Records</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-prescription"></i> Prescriptions</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-vials"></i> Test Results</a></li>
-                                    </ul>
-                                </li>
-                            }
-                            
-                            @if (userRole == "Admin" || userRole == "Staff")
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-pills"></i> Pharmacy
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-capsules"></i> Medicines</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-warehouse"></i> Stock Management</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-exchange-alt"></i> Transactions</a></li>
-                                    </ul>
-                                </li>
-                                
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-users"></i> Staff
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus"></i> Manage Staff</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-alt"></i> Work Schedules</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-times"></i> Leave Requests</a></li>
-                                    </ul>
-                                </li>
-                            }
                         }
                     </ul>
                     
                     <ul class="navbar-nav">
-                        @if (Context.Session.GetString("UserId") != null)
+                        @{
+                            var userName = Context.Session.GetString("UserName");
+                            var userRole = Context.Session.GetString("UserRole");
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(userName))
                         {
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="badge bg-danger">3</span>
+                                </a>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user"></i> @Context.Session.GetString("UserName")
+                                    <i class="fas fa-user-circle"></i> @userName
+                                    <span class="badge bg-secondary ms-1">@userRole</span>
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="@Url.Action("ChangePassword", "Account")">
-                                        <i class="fas fa-key"></i> Change Password
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><h6 class="dropdown-header">
+                                        <i class="fas fa-user"></i> @userName
+                                        <br><small class="text-muted">@userRole</small>
+                                    </h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Profile", "User")">
+                                        <i class="fas fa-user-edit"></i> Profil
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Settings", "User")">
+                                        <i class="fas fa-cog"></i> Ayarlar
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form method="post" action="@Url.Action("Logout", "Account")" class="d-inline">
-                                            <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-sign-out-alt"></i> Logout
-                                            </button>
-                                        </form>
-                                    </li>
+                                    <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "Auth")">
+                                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                                    </a></li>
                                 </ul>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" href="@Url.Action("Login", "Account")">
-                                    <i class="fas fa-sign-in-alt"></i> Login
+                                <a class="nav-link" href="@Url.Action("Login", "Auth")">
+                                    <i class="fas fa-sign-in-alt"></i> Giriş Yap
                                 </a>
                             </li>
                         }
@@ -116,41 +148,50 @@
         </nav>
     </header>
     
-    <main class="container mt-4">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        
+    <!-- Notification System -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show m-3" role="alert">
+            <i class="fas fa-info-circle me-2"></i>@TempData["InfoMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    <main class="flex-grow-1">
         @RenderBody()
     </main>
-
-    <footer class="bg-light mt-5 py-4">
+    
+    <footer class="bg-light text-center text-muted py-4 mt-5">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <p>&copy; 2025 Hospital Management System. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <small class="text-muted">Built with ASP.NET Core & MongoDB</small>
-                </div>
-            </div>
+            <p class="mb-0">
+                &copy; 2025 - Hospital Management System - 
+                <a href="#" class="text-decoration-none">Privacy</a> | 
+                <a href="#" class="text-decoration-none">Terms</a>
+            </p>
         </div>
     </footer>
-
+    
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

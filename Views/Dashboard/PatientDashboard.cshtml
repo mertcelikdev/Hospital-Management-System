@@ -1,0 +1,236 @@
+@{
+    ViewData["Title"] = "Hasta Paneli";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user-injured text-primary me-2"></i>Hasta Paneli</h2>
+                <span class="badge bg-primary fs-6">Hoş geldiniz, @ViewBag.UserName</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Yaklaşan Randevular</h5>
+                            <h2 class="mb-0">@ViewBag.UpcomingAppointments</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-plus fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Aktif Reçeteler</h5>
+                            <h2 class="mb-0">@ViewBag.ActivePrescriptions</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-prescription-bottle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Devam Eden Tedavi</h5>
+                            <h2 class="mb-0">@ViewBag.ActiveTreatments</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-stethoscope fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Sağlık Durumu</h5>
+                            <h2 class="mb-0">İyi</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-heart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı İşlemler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Hızlı İşlemler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="/Appointment/Create" class="btn btn-primary w-100">
+                                <i class="fas fa-calendar-plus me-2"></i>Randevu Al
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="/Appointment/Index" class="btn btn-success w-100">
+                                <i class="fas fa-calendar-alt me-2"></i>Randevularım
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="/Prescription/Index" class="btn btn-info w-100">
+                                <i class="fas fa-prescription me-2"></i>Reçetelerim
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Randevular ve Reçeteler -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Yaklaşan Randevularım</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.UpcomingAppointments != null && ViewBag.UpcomingAppointments > 0)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">Dr. Ahmet Yılmaz</h6>
+                                <small class="text-muted">15.08.2025 - 14:00</small>
+                            </div>
+                            <span class="badge bg-primary">Kontrol</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">Dr. Mehmet Kaya</h6>
+                                <small class="text-muted">20.08.2025 - 10:30</small>
+                            </div>
+                            <span class="badge bg-success">Muayene</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                            <p>Yaklaşan randevunuz bulunmuyor.</p>
+                            <a href="/Appointment/Create" class="btn btn-primary btn-sm">Randevu Al</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-pills me-2"></i>Aktif İlaçlarım</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.ActivePrescriptions != null && ViewBag.ActivePrescriptions > 0)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">Parol 500mg</h6>
+                                <small class="text-muted">Günde 3 kez, yemekten sonra</small>
+                            </div>
+                            <span class="badge bg-success">Aktif</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">Aspirin 100mg</h6>
+                                <small class="text-muted">Günde 1 kez, sabah</small>
+                            </div>
+                            <span class="badge bg-warning">5 gün kaldı</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-prescription-bottle fa-3x mb-3"></i>
+                            <p>Aktif reçeteniz bulunmuyor.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağlık Önerileri -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Sağlık Önerileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-glass-water text-primary fa-3x mb-2"></i>
+                                <h6>Su İçmeyi Unutmayın</h6>
+                                <small class="text-muted">Günde en az 8 bardak su için</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-running text-success fa-3x mb-2"></i>
+                                <h6>Düzenli Egzersiz</h6>
+                                <small class="text-muted">Haftada 3-4 kez egzersiz yapın</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-moon text-info fa-3x mb-2"></i>
+                                <h6>Kaliteli Uyku</h6>
+                                <small class="text-muted">Günde 7-8 saat uyuyun</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.15s ease-in-out;
+    }
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .opacity-75 {
+        opacity: 0.75;
+    }
+</style>

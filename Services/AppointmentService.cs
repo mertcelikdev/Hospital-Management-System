@@ -1,127 +1,70 @@
-using HospitalManagementSystem.Models;
 using MongoDB.Driver;
+using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.Services
 {
-    public interface IAppointmentService
-    {
-        Task<List<Appointment>> GetAppointmentsByPatientIdAsync(string patientId);
-        Task<List<Appointment>> GetAppointmentsByDoctorIdAsync(string doctorId);
-        Task<List<Appointment>> GetAppointmentsByDateAsync(DateTime date);
-        Task<List<Appointment>> GetAppointmentsByDateRangeAsync(DateTime startDate, DateTime endDate);
-        Task<Appointment?> GetAppointmentByIdAsync(string id);
-        Task<Appointment> CreateAppointmentAsync(Appointment appointment);
-        Task<bool> UpdateAppointmentAsync(string id, Appointment appointment);
-        Task<bool> UpdateAppointmentStatusAsync(string id, AppointmentStatus status);
-        Task<bool> DeleteAppointmentAsync(string id);
-        Task<bool> CheckDoctorAvailabilityAsync(string doctorId, DateTime appointmentDate, TimeSpan duration);
-    }
-
-    public class AppointmentService : IAppointmentService
+    public class AppointmentService
     {
         private readonly IMongoCollection<Appointment> _appointments;
-        private readonly IUserService _userService;
+        private readonly IMongoCollection<User> _users;
 
-        public AppointmentService(IMongoDbContext context, IUserService userService)
+        public AppointmentService(IMongoDatabase database)
         {
-            _appointments = context.GetCollection<Appointment>("Appointments");
-            _userService = userService;
+            _appointments = database.GetCollection<Appointment>("Appointments");
+            _users = database.GetCollection<User>("Users");
         }
 
-        public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(string patientId)
+        public async Task<List<Appointment>> GetAllAppointmentsAsync()
         {
-            var appointments = await _appointments.Find(x => x.PatientId == patientId).ToListAsync();
-            await PopulateNavigationPropertiesAsync(appointments);
-            return appointments;
+            return await _appointments.Find(_ => true).ToListAsync();
         }
 
-        public async Task<List<Appointment>> GetAppointmentsByDoctorIdAsync(string doctorId)
+        public async Task<Appointment> GetAppointmentByIdAsync(string id)
         {
-            var appointments = await _appointments.Find(x => x.DoctorId == doctorId).ToListAsync();
-            await PopulateNavigationPropertiesAsync(appointments);
-            return appointments;
-        }
-
-        public async Task<List<Appointment>> GetAppointmentsByDateAsync(DateTime date)
-        {
-            var startDate = date.Date;
-            var endDate = startDate.AddDays(1);
-            
-            var appointments = await _appointments.Find(x => x.AppointmentDate >= startDate && x.AppointmentDate < endDate).ToListAsync();
-            await PopulateNavigationPropertiesAsync(appointments);
-            return appointments;
-        }
-
-        public async Task<List<Appointment>> GetAppointmentsByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            var appointments = await _appointments.Find(x => x.AppointmentDate >= startDate && x.AppointmentDate <= endDate).ToListAsync();
-            await PopulateNavigationPropertiesAsync(appointments);
-            return appointments;
-        }
-
-        public async Task<Appointment?> GetAppointmentByIdAsync(string id)
-        {
-            var appointment = await _appointments.Find(x => x.Id == id).FirstOrDefaultAsync();
-            if (appointment != null)
-            {
-                await PopulateNavigationPropertiesAsync(new List<Appointment> { appointment });
-            }
-            return appointment;
+            return await _appointments.Find(a => a.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
-            appointment.CreatedAt = DateTime.UtcNow;
-            appointment.UpdatedAt = DateTime.UtcNow;
-            
             await _appointments.InsertOneAsync(appointment);
             return appointment;
         }
 
-        public async Task<bool> UpdateAppointmentAsync(string id, Appointment appointment)
+        public async Task UpdateAppointmentAsync(string id, Appointment appointment)
         {
             appointment.UpdatedAt = DateTime.UtcNow;
-            var result = await _appointments.ReplaceOneAsync(x => x.Id == id, appointment);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
+            await _appointments.ReplaceOneAsync(a => a.Id == id, appointment);
         }
 
-        public async Task<bool> UpdateAppointmentStatusAsync(string id, AppointmentStatus status)
+        public async Task DeleteAppointmentAsync(string id)
+        {
+            await _appointments.DeleteOneAsync(a => a.Id == id);
+        }
+
+        public async Task<List<Appointment>> GetPatientAppointmentsAsync(string patientId)
+        {
+            return await _appointments.Find(a => a.PatientId == patientId).ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetDoctorAppointmentsAsync(string doctorId)
+        {
+            return await _appointments.Find(a => a.DoctorId == doctorId).ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetDailyAppointmentsAsync(DateTime date)
+        {
+            var startDate = date.Date;
+            var endDate = startDate.AddDays(1).AddTicks(-1);
+            return await _appointments.Find(a => a.AppointmentDate >= startDate && a.AppointmentDate <= endDate).ToListAsync();
+        }
+
+        public async Task UpdateAppointmentStatusAsync(string id, AppointmentStatus status)
         {
             var update = Builders<Appointment>.Update
-                .Set(x => x.Status, status)
-                .Set(x => x.UpdatedAt, DateTime.UtcNow);
+                .Set(a => a.Status, status)
+                .Set(a => a.UpdatedAt, DateTime.UtcNow);
             
-            var result = await _appointments.UpdateOneAsync(x => x.Id == id, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
-        }
-
-        public async Task<bool> DeleteAppointmentAsync(string id)
-        {
-            var result = await _appointments.DeleteOneAsync(x => x.Id == id);
-            return result.IsAcknowledged && result.DeletedCount > 0;
-        }
-
-        public async Task<bool> CheckDoctorAvailabilityAsync(string doctorId, DateTime appointmentDate, TimeSpan duration)
-        {
-            var appointmentEnd = appointmentDate.Add(duration);
-            
-            var conflictingAppointments = await _appointments.Find(x => 
-                x.DoctorId == doctorId &&
-                x.Status != AppointmentStatus.Cancelled &&
-                x.AppointmentDate < appointmentEnd &&
-                x.AppointmentDate.Add(x.Duration) > appointmentDate
-            ).ToListAsync();
-            
-            return !conflictingAppointments.Any();
-        }
-
-        private async Task PopulateNavigationPropertiesAsync(List<Appointment> appointments)
-        {
-            foreach (var appointment in appointments)
-            {
-                appointment.Patient = await _userService.GetUserByIdAsync(appointment.PatientId);
-                appointment.Doctor = await _userService.GetUserByIdAsync(appointment.DoctorId);
-            }
+            await _appointments.UpdateOneAsync(a => a.Id == id, update);
         }
     }
 }
