@@ -36,7 +36,7 @@ namespace HospitalManagementSystem.Services
                 t.NurseId == nurseId && 
                 t.DueDate >= today && 
                 t.DueDate < tomorrow &&
-                t.Status != TaskStatus.Tamamlandi
+                t.Status != Models.TaskStatus.Tamamlandi
             ).ToListAsync();
         }
 

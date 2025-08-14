@@ -181,7 +181,34 @@ Modern, web tabanlı bir hastane yönetim sistemi. .NET 9 MVC pattern'i kullanı
 4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
 5. Pull Request oluşturun
 
-## 📝 Lisans
+## � Güvenlik Notları
+
+⚠️ **ÖNEMLİ**: Aşağıdaki dosyalar hassas bilgiler içerir ve GitHub'a yüklenmemelidir:
+
+### Hassas Dosyalar:
+- `appsettings.json` - Üretim ayarları
+- `appsettings.Development.json` - Geliştirme ayarları  
+- `appsettings.Production.json` - Üretim ortamı ayarları
+- `.env` dosyaları - Çevre değişkenleri
+- `*.key`, `*.pem` - SSL sertifikaları ve şifreleme anahtarları
+- `secrets.json` - Gizli anahtarlar
+
+### Kurulum için:
+1. `appsettings.Example.json` dosyasını kopyalayın
+2. Kendi `appsettings.json` dosyanızı oluşturun
+3. MongoDB bağlantı string'inizi ve JWT anahtarınızı güncelleyin
+
+```bash
+# Windows
+copy appsettings.Example.json appsettings.json
+
+# Linux/Mac  
+cp appsettings.Example.json appsettings.json
+```
+
+Bu dosyalar `.gitignore` ile korunmaktadır.
+
+## �📝 Lisans
 
 Bu proje MIT lisansı altında lisanslanmıştır.
 
