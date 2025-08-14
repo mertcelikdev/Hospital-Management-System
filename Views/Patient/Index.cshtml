@@ -1,0 +1,180 @@
+@model List<HospitalManagementSystem.DTOs.PatientDto>
+@{
+    ViewData["Title"] = "Hasta Listesi";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-users mr-2"></i>
+                        Hasta Listesi
+                    </h3>
+                    <div>
+                        <a href="@Url.Action("Create")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Yeni Hasta
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Search -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="liveSearchInput" maxlength="11" class="form-control" placeholder="TC Kimlik No ile arayın..." autocomplete="off" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                            </div>
+                            <small class="text-muted">Sadece TC ile arama (en az 3 hane, sadece rakam).</small>
+                        </div>
+                    </div>
+
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="patientTable">
+                                <thead>
+                                    <tr>
+                                        <th>Ad Soyad</th>
+                                        <th>TC No</th>
+                                        <th>Telefon</th>
+                                        <th>E-posta</th>
+                                        <th>Yaş</th>
+                                        <th>Kan Grubu</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var patient in Model)
+                                    {
+                                        <tr class="patient-row">
+                                            <td><strong>@patient.FullName</strong></td>
+                                            <td>@patient.TcNo</td>
+                                            <td>@patient.PhoneNumber</td>
+                                            <td>@patient.Email</td>
+                                            <td>@patient.Age</td>
+                                            <td class="text-dark fw-semibold">@patient.BloodType</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("Details", new { id = patient.Id })" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
+                                                    <a href="@Url.Action("Edit", new { id = patient.Id })" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
+                                                    <a href="@Url.Action("MedicalHistory", new { id = patient.Id })" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
+                                                    <a href="@Url.Action("Delete", new { id = patient.Id })" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="small text-muted">Sayfa Boyutu: 10 (maksimum)</div>
+                            <nav><ul class="pagination pagination-sm mb-0" id="patientPagination"></ul></nav>
+                            <div class="small text-muted" id="patientPageInfo"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchQuery as string))
+                            {
+                                <text>Arama kriterlerinize uygun hasta bulunamadı.</text>
+                            }
+                            else
+                            {
+                                <text>Henüz hasta kaydı bulunmuyor.</text>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    const input = document.getElementById('liveSearchInput');
+    const tableBody = document.querySelector('#patientTable tbody');
+    let patientCurrentPage = 1; const patientPageSize = 10; let lastRenderedList = [];
+        let typingTimer; let lastQuery = '';
+        input.addEventListener('keyup', function(){
+            clearTimeout(typingTimer);
+            const val = input.value.trim();
+            if(val === lastQuery) return;
+            typingTimer = setTimeout(()=> doSearch(val), 300);
+        });
+        input.addEventListener('change', ()=> doSearch(input.value.trim()));
+
+        async function doSearch(q){
+            lastQuery = q;
+            if(q.length>0 && (!/^\d+$/.test(q) || q.length<3)){
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">En az 3 haneli rakam girin</td></tr>';
+                return;
+            }
+            try {
+                const resp = await fetch(`/Patient/Search?query=${encodeURIComponent(q)}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }});
+                const json = await resp.json();
+                if(!json.success) return;
+                renderRows(json.data);
+            } catch(e){ console.error(e); }
+        }
+
+        function renderRows(list){
+            lastRenderedList = list||[];
+            const total = lastRenderedList.length;
+            const totalPages = Math.max(1, Math.ceil(total/patientPageSize));
+            if(patientCurrentPage>totalPages) patientCurrentPage = totalPages;
+            tableBody.innerHTML = '';
+            if(total===0){ tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Kayıt bulunamadı</td></tr>'; updatePatientPagination(0,0); return; }
+            const start = (patientCurrentPage-1)*patientPageSize;
+            const end = patientCurrentPage*patientPageSize;
+            lastRenderedList.slice(start,end).forEach(p=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${escapeHtml(p.fullName|| (p.firstName+" "+p.lastName))}</strong></td>
+                    <td>${p.tcNo||''}</td>
+                    <td>${p.phoneNumber||''}</td>
+                    <td>${p.email||''}</td>
+                    <td>${calcAge(p.dateOfBirth)}</td>
+                    <td class='text-dark fw-semibold'>${p.bloodType||''}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="/Patient/Details/${p.id}" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
+                            <a href="/Patient/Edit/${p.id}" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="/Patient/MedicalHistory/${p.id}" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
+                            <a href="/Patient/Delete/${p.id}" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>`;
+                tableBody.appendChild(tr);
+            });
+            updatePatientPagination(totalPages,total);
+        }
+
+        function updatePatientPagination(pages,total){
+            const pagUl = document.getElementById('patientPagination');
+            const info = document.getElementById('patientPageInfo');
+            if(!pagUl) return;
+            pagUl.innerHTML='';
+            if(pages>1){
+                const mk=(p,txt,dis,act)=>`<li class="page-item ${dis?'disabled':''} ${act?'active':''}"><a href="#" class="page-link" data-page="${p}">${txt}</a></li>`;
+                pagUl.innerHTML += mk(patientCurrentPage-1,'«',patientCurrentPage===1,false);
+                let start = Math.max(1,patientCurrentPage-2); let end = Math.min(pages,start+4); if(end-start<4) start=Math.max(1,end-4);
+                for(let p=start;p<=end;p++){ pagUl.innerHTML += mk(p,p,false,p===patientCurrentPage); }
+                pagUl.innerHTML += mk(patientCurrentPage+1,'»',patientCurrentPage===pages,false);
+            }
+            const startRecord = total?((patientCurrentPage-1)*patientPageSize+1):0;
+            const endRecord = Math.min(patientCurrentPage*patientPageSize,total);
+            info.textContent = `${startRecord}-${endRecord} / ${total}`;
+            pagUl.addEventListener('click',function(e){
+                const a=e.target.closest('a[data-page]'); if(!a) return; e.preventDefault(); const p=parseInt(a.dataset.page); if(!isNaN(p)){patientCurrentPage=Math.max(1,p); renderRows(lastRenderedList);} },{ once:true });
+        }
+
+        function calcAge(d){ if(!d) return ''; const date = new Date(d); if(isNaN(date)) return ''; const now=new Date(); let age=now.getFullYear()-date.getFullYear(); const m=now.getMonth()-date.getMonth(); if(m<0 || (m===0 && now.getDate()<date.getDate())) age--; return age; }
+        function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>"] /g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',' ':' '})[c]); }
+    </script>
+}

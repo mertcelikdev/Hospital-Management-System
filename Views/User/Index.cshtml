@@ -212,32 +212,39 @@
                 </table>
             </div>
         </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="small text-muted">Sayfa Boyutu: 10 (maksimum)</div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="userPagination"></ul>
+            </nav>
+            <div><span class="small text-muted" id="userPageInfo"></span></div>
+        </div>
     </div>
 </div>
 
 @functions {
-    string GetRoleColor(UserRole role)
+    string GetRoleColor(string role)
     {
         return role switch
         {
-            UserRole.Doctor => "primary",
-            UserRole.Patient => "success",
-            UserRole.Nurse => "info",
-            UserRole.Staff => "warning",
-            UserRole.Admin => "danger",
+            "Doctor" => "primary",
+            "Patient" => "success",
+            "Nurse" => "info",
+            "Staff" => "warning",
+            "Admin" => "danger",
             _ => "secondary"
         };
     }
 
-    string GetRoleDisplayName(UserRole role)
+    string GetRoleDisplayName(string role)
     {
         return role switch
         {
-            UserRole.Doctor => "Doktor",
-            UserRole.Patient => "Hasta",
-            UserRole.Nurse => "Hemşire",
-            UserRole.Staff => "Personel",
-            UserRole.Admin => "Admin",
+            "Doctor" => "Doktor",
+            "Patient" => "Hasta",
+            "Nurse" => "Hemşire",
+            "Staff" => "Personel",
+            "Admin" => "Admin",
             _ => "Bilinmiyor"
         };
     }
@@ -250,35 +257,41 @@
         document.getElementById('roleFilter').addEventListener('change', filterTable);
         document.getElementById('statusFilter').addEventListener('change', filterTable);
 
+        let userCurrentPage = 1;
+        const userPageSize = 10;
+
         function filterTable() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const roleFilter = document.getElementById('roleFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
             const table = document.getElementById('usersTable');
             const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
+            const visibleRows = [];
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
+                if(row.querySelector('.text-center')) continue; // boş kayıt satırı varsa
                 const name = row.cells[1].textContent.toLowerCase();
                 const email = row.cells[2].textContent.toLowerCase();
                 const phone = row.cells[3].textContent.toLowerCase();
                 const role = row.cells[4].textContent;
                 const status = row.cells[5].textContent;
-
-                const matchesSearch = name.includes(searchTerm) || 
-                                    email.includes(searchTerm) || 
-                                    phone.includes(searchTerm);
+                const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm);
                 const matchesRole = !roleFilter || role.includes(roleFilter);
-                const matchesStatus = !statusFilter || 
-                                    (statusFilter === 'true' && status.includes('Aktif')) ||
-                                    (statusFilter === 'false' && status.includes('Pasif'));
-
+                const matchesStatus = !statusFilter || (statusFilter === 'true' && status.includes('Aktif')) || (statusFilter === 'false' && status.includes('Pasif'));
                 if (matchesSearch && matchesRole && matchesStatus) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+                    visibleRows.push(row);
                 }
+                row.style.display = 'none';
             }
+            const total = visibleRows.length;
+            const totalPages = Math.max(1, Math.ceil(total / userPageSize));
+            if(userCurrentPage>totalPages) userCurrentPage = totalPages;
+            visibleRows.forEach((r,idx)=>{
+                const start = (userCurrentPage-1)*userPageSize;
+                const end = userCurrentPage*userPageSize;
+                if(idx>=start && idx<end) r.style.display='';
+            });
+            renderUserPagination(totalPages, total);
         }
 
         function clearFilters() {
@@ -287,6 +300,32 @@
             document.getElementById('statusFilter').value = '';
             filterTable();
         }
+
+        function renderUserPagination(pages,total){
+            const pagUl = document.getElementById('userPagination');
+            const info = document.getElementById('userPageInfo');
+            if(!pagUl) return;
+            pagUl.innerHTML='';
+            if(pages>1){
+                const mk=(p,txt,dis,act)=>`<li class="page-item ${dis?'disabled':''} ${act?'active':''}"><a href="#" class="page-link" data-page="${p}">${txt}</a></li>`;
+                pagUl.innerHTML += mk(userCurrentPage-1,'«',userCurrentPage===1,false);
+                let start = Math.max(1,userCurrentPage-2); let end = Math.min(pages,start+4); if(end-start<4) start=Math.max(1,end-4);
+                for(let p=start;p<=end;p++){ pagUl.innerHTML += mk(p,p,false,p===userCurrentPage); }
+                pagUl.innerHTML += mk(userCurrentPage+1,'»',userCurrentPage===pages,false);
+            }
+            const startRecord = total?((userCurrentPage-1)*userPageSize+1):0;
+            const endRecord = Math.min(userCurrentPage*userPageSize,total);
+            info.textContent = `${startRecord}-${endRecord} / ${total}`;
+            pagUl.addEventListener('click',function(e){
+                const a = e.target.closest('a[data-page]');
+                if(!a) return; e.preventDefault();
+                const p = parseInt(a.dataset.page);
+                if(!isNaN(p)) { userCurrentPage = Math.max(1,p); filterTable(); }
+            },{ once:true });
+        }
+
+        // İlk yükleme
+        filterTable();
 
         function deleteUser(userId, userName) {
             if (confirm(`"${userName}" kullanıcısını silmek istediğinizden emin misiniz?`)) {

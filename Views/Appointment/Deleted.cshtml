@@ -1,0 +1,131 @@
+@model List<HospitalManagementSystem.ViewModels.AppointmentViewModel>
+@{
+    ViewData["Title"] = "Silinen Randevular";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-trash-alt text-danger me-2"></i>Silinen Randevular</h2>
+        <a href="@Url.Action("Index","Appointment")" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Geri</a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle" id="deletedTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tarih & Saat</th>
+                            <th>Hasta</th>
+                            <th>Doktor</th>
+                            <th>Durum</th>
+                            <th>Silinme Tarihi</th>
+                            <th>Oluşturan</th>
+                            <th>Silen</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deletedTableBody">
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var appt in Model)
+                            {
+                                <tr class="deleted-row">
+                                    <td>
+                                        <div class="fw-semibold">@appt.AppointmentDate.ToString("dd.MM.yyyy")</div>
+                                        <small class="text-muted">@appt.AppointmentDate.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">@appt.PatientName</div>
+                                        @if(!string.IsNullOrWhiteSpace(appt.PatientTc)){
+                                            <small class="text-muted">TC: @appt.PatientTc</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">@appt.DoctorName</div>
+                                        <small class="text-muted d-block">@appt.Department</small>
+                                    </td>
+                                    <td><span class="badge bg-danger">@appt.Status</span></td>
+                                    <td>
+                                        @if (appt.DeletedAt.HasValue)
+                                        {
+                                            <div class="fw-semibold">@appt.DeletedAt.Value.ToString("dd.MM.yyyy")</div>
+                                            <small class="text-muted">@appt.DeletedAt.Value.ToString("HH:mm")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@(string.IsNullOrEmpty(appt.CreatedByName) ? "-" : appt.CreatedByName)</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@(string.IsNullOrEmpty(appt.DeletedByName) ? "-" : appt.DeletedByName)</small>
+                                    </td>
+                                    <td>
+                                        <form asp-action="Restore" asp-controller="Appointment" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@appt.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success mb-1"><i class="fas fa-undo"></i></button>
+                                        </form>
+                                        <form asp-action="HardDelete" asp-controller="Appointment" method="post" class="d-inline" onsubmit="return confirm('Kalıcı olarak silinecek. Emin misiniz?');">
+                                            <input type="hidden" name="id" value="@appt.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="8" class="text-center py-4 text-muted">Silinen randevu yok</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="small text-muted">Sayfa Boyutu: 10 (maksimum)</div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="paginationDeleted"></ul>
+            </nav>
+            <div><span class="small text-muted" id="pageInfoDeleted"></span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const rows = Array.from(document.querySelectorAll('#deletedTableBody tr.deleted-row'));
+    const pageSizeFixed = 10;
+        const pagUl = document.getElementById('paginationDeleted');
+        const info = document.getElementById('pageInfoDeleted');
+        let current = 1;
+        function render(){
+            const size = pageSizeFixed;
+            const total = rows.length;
+            const pages = Math.max(1, Math.ceil(total/size));
+            if(current>pages) current = pages;
+            rows.forEach((r,i)=>{
+                const show = i >= (current-1)*size && i < current*size;
+                r.style.display = show?'' : 'none';
+            });
+            // pagination buttons
+            pagUl.innerHTML='';
+            if(pages>1){
+                const mk = (p,txt,dis,act)=>`<li class="page-item ${dis?'disabled':''} ${act?'active':''}"><a class="page-link" href="#" data-page="${p}">${txt}</a></li>`;
+                pagUl.innerHTML += mk(current-1,'«',current===1,false);
+                let start = Math.max(1,current-2); let end = Math.min(pages,start+4); if(end-start<4) start=Math.max(1,end-4);
+                for(let p=start;p<=end;p++){ pagUl.innerHTML += mk(p,p,false,p===current); }
+                pagUl.innerHTML += mk(current+1,'»',current===pages,false);
+            }
+            info.textContent = `${rows.length?((current-1)*size+1):0}-${Math.min(current*size, rows.length)} / ${rows.length}`;
+        }
+        pagUl.addEventListener('click',e=>{
+            const a = e.target.closest('a[data-page]');
+            if(!a) return; e.preventDefault();
+            const p = parseInt(a.dataset.page);
+            if(!isNaN(p)) { current = Math.max(1,p); render(); }
+        });
+        render();
+    })();
+</script>
