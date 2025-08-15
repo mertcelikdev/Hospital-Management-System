@@ -1,37 +1,37 @@
-using HospitalManagementSystem.Models;
+using HospitalManagementSystem.DTOs;
 
 namespace HospitalManagementSystem.Services
 {
     public interface IMedicineService
     {
         // CRUD Operations
-        Task<List<Medicine>> GetAllMedicinesAsync();
-        Task<Medicine?> GetMedicineByIdAsync(string id);
-        Task<List<Medicine>> GetActiveMedicinesAsync();
-        Task CreateMedicineAsync(Medicine medicine);
-        Task UpdateMedicineAsync(string id, Medicine medicine);
+        Task<List<MedicineDto>> GetAllMedicinesAsync();
+        Task<MedicineDto?> GetMedicineByIdAsync(string id);
+        Task<List<MedicineDto>> GetActiveMedicinesAsync();
+        Task CreateMedicineAsync(CreateMedicineDto createMedicineDto);
+        Task UpdateMedicineAsync(string id, UpdateMedicineDto updateMedicineDto);
         Task DeleteMedicineAsync(string id);
 
         // Search Operations
-        Task<List<Medicine>> SearchMedicinesAsync(string searchTerm);
-        Task<Medicine?> GetMedicineByNameAsync(string name);
-        Task<List<Medicine>> GetMedicinesByManufacturerAsync(string manufacturer);
-        Task<List<Medicine>> GetMedicinesByCategoryAsync(string category);
+        Task<List<MedicineDto>> SearchMedicinesAsync(string searchTerm);
+        Task<MedicineDto?> GetMedicineByNameAsync(string name);
+        Task<List<MedicineDto>> GetMedicinesByManufacturerAsync(string manufacturer);
+        Task<List<MedicineDto>> GetMedicinesByCategoryAsync(string category);
 
         // Stock Operations
         Task UpdateStockAsync(string id, int newStock);
         Task IncreaseStockAsync(string id, int amount);
         Task DecreaseStockAsync(string id, int amount);
-        Task<List<Medicine>> GetLowStockMedicinesAsync(int threshold = 10);
-        Task<List<Medicine>> GetOutOfStockMedicinesAsync();
+        Task<List<MedicineDto>> GetLowStockMedicinesAsync(int threshold = 10);
+        Task<List<MedicineDto>> GetOutOfStockMedicinesAsync();
 
         // Price Operations
         Task UpdatePriceAsync(string id, decimal newPrice);
-        Task<List<Medicine>> GetMedicinesByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+        Task<List<MedicineDto>> GetMedicinesByPriceRangeAsync(decimal minPrice, decimal maxPrice);
 
         // Expiry Operations
-        Task<List<Medicine>> GetExpiringMedicinesAsync(int daysThreshold = 30);
-        Task<List<Medicine>> GetExpiredMedicinesAsync();
+        Task<List<MedicineDto>> GetExpiringMedicinesAsync(int daysThreshold = 30);
+        Task<List<MedicineDto>> GetExpiredMedicinesAsync();
         Task UpdateExpiryDateAsync(string id, DateTime newExpiryDate);
 
         // Category Operations
@@ -50,16 +50,16 @@ namespace HospitalManagementSystem.Services
         Task<bool> IsMedicineExpiredAsync(string id);
 
         // Bulk Operations
-        Task<List<Medicine>> GetMedicinesByIdsAsync(List<string> ids);
+        Task<List<MedicineDto>> GetMedicinesByIdsAsync(List<string> ids);
         Task BulkUpdateStockAsync(Dictionary<string, int> stockUpdates);
         Task BulkUpdatePricesAsync(Dictionary<string, decimal> priceUpdates);
 
         // Prescription Related
         Task<bool> IsMedicinePrescriptionOnlyAsync(string id);
-        Task<List<Medicine>> GetPrescriptionMedicinesAsync();
-        Task<List<Medicine>> GetOverTheCounterMedicinesAsync();
+        Task<List<MedicineDto>> GetPrescriptionMedicinesAsync();
+        Task<List<MedicineDto>> GetOverTheCounterMedicinesAsync();
 
-        // Additional methods for Dashboard
+        // Dashboard metrics
         Task<int> GetLowStockMedicinesCountAsync();
         Task<int> GetExpiredMedicinesCountAsync();
         Task<int> GetExpiringSoonMedicinesCountAsync();

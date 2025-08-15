@@ -109,15 +109,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                <label asp-for="IsActive" class="form-check-label">
-                                    <i class="fas fa-toggle-on me-1 text-success"></i>Departman aktif
-                                </label>
-                                <div class="form-text">Pasif departmanlar listede görünür ancak yeni atamalar yapılamaz</div>
-                            </div>
-                        </div>
+                        <!-- IsActive kaldırıldı -->
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
@@ -155,19 +147,7 @@
                                 <td>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</td>
                             </tr>
                         }
-                        <tr>
-                            <td><strong>Durum:</strong></td>
-                            <td>
-                                @if (Model.IsActive)
-                                {
-                                    <span class="badge bg-success">Aktif</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Pasif</span>
-                                }
-                            </td>
-                        </tr>
+                        <!-- Durum satırı kaldırıldı -->
                     </table>
                 </div>
             </div>
@@ -185,14 +165,7 @@
                         Bu kod sistemde başka yerlerde referans olarak kullanılabilir.
                     </div>
                     
-                    @if (!Model.IsActive)
-                    {
-                        <div class="alert alert-info small">
-                            <i class="fas fa-pause-circle me-2"></i>
-                            <strong>Pasif Departman:</strong> Bu departman şu anda pasif durumda. 
-                            Yeni kullanıcı atamaları yapılamaz.
-                        </div>
-                    }
+                    <!-- Pasif departman uyarısı kaldırıldı -->
                 </div>
             </div>
         </div>

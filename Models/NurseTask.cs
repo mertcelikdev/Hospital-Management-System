@@ -35,18 +35,26 @@ namespace HospitalManagementSystem.Models
         public string NurseId { get; set; } = string.Empty;
 
         [Required]
+        public string AssignedToId { get; set; } = string.Empty; // Modern interface için
+        public string? AssignedToName { get; set; }
+
+        [Required]
         public string AssignedToNurseId { get; set; } = string.Empty; // Service için
 
         [Required]
         public string AssignedBy { get; set; } = string.Empty; // Doktor veya Admin ID'si
+        public string CreatedBy { get; set; } = string.Empty;
+        public string? CreatedByName { get; set; }
 
         public string? PatientId { get; set; }
+        public string? PatientName { get; set; }
 
         public TaskStatus Status { get; set; } = TaskStatus.Beklemede;
 
         public TaskPriority Priority { get; set; } = TaskPriority.Normal;
 
         public DateTime DueDate { get; set; }
+        public DateTime? StartedAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -55,5 +63,11 @@ namespace HospitalManagementSystem.Models
         public DateTime? CompletedAt { get; set; }
 
         public string Notes { get; set; } = string.Empty;
+        
+        // Ek özellikler
+        public string? Category { get; set; }
+        public bool RequiresEquipment { get; set; } = false;
+        public string? EquipmentNeeded { get; set; }
+        public string? Instructions { get; set; }
     }
 }

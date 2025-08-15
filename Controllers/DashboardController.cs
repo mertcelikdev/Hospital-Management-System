@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementSystem.Controllers
 {
-    [AuthorizeRole("Admin", "Doctor", "Nurse", "Receptionist")]
+    [AuthorizeRole("Admin", "Doctor", "Nurse", "Receptionist", "Staff")]
     public class DashboardController : Controller
     {
         private readonly IUserService _userService;
@@ -33,8 +33,8 @@ namespace HospitalManagementSystem.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
-            var userId = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userRole) || string.IsNullOrEmpty(userId))
             {
@@ -65,7 +65,7 @@ namespace HospitalManagementSystem.Controllers
                     model.TotalDepartments = allDepartments.Count();
                     model.TotalAppointments = allAppointments.Count();
                     model.TodayAppointments = allAppointments.Count(a => a.AppointmentDate.Date == DateTime.Today);
-                    model.PendingAppointments = allAppointments.Count(a => a.Status == AppointmentStatus.Planlandı);
+                    model.PendingAppointments = allAppointments.Count(a => a.Status == "Planlandı" || a.Status == "Scheduled");
                     model.TotalMedicines = allMedicines.Count();
                     model.LowStockMedicines = allMedicines.Count(m => m.StockQuantity <= 10); // Default minimum stock level
                     model.ExpiredMedicines = allMedicines.Count(m => m.ExpiryDate.HasValue && m.ExpiryDate.Value < DateTime.Now);
@@ -75,7 +75,7 @@ namespace HospitalManagementSystem.Controllers
                 {
                     var myAppointments = allAppointments.Where(a => a.DoctorId == userId).ToList();
                     model.TodayAppointments = myAppointments.Count(a => a.AppointmentDate.Date == DateTime.Today);
-                    model.PendingAppointments = myAppointments.Count(a => a.Status == AppointmentStatus.Planlandı);
+                    model.PendingAppointments = myAppointments.Count(a => a.Status == "Planlandı" || a.Status == "Scheduled");
                 }
                 // Nurse Dashboard
                 else if (userRole == "Nurse")
@@ -91,7 +91,7 @@ namespace HospitalManagementSystem.Controllers
                 else if (userRole == "Receptionist")
                 {
                     model.TodayAppointments = allAppointments.Count(a => a.AppointmentDate.Date == DateTime.Today);
-                    model.PendingAppointments = allAppointments.Count(a => a.Status == AppointmentStatus.Planlandı);
+                    model.PendingAppointments = allAppointments.Count(a => a.Status == "Planlandı" || a.Status == "Scheduled");
                     model.TotalPatients = allUsers.Count(u => u.Role == "Patient");
                 }
             }
@@ -105,9 +105,43 @@ namespace HospitalManagementSystem.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> StaffDashboard()
+        {
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userRole) || string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
+            if (userRole != "Staff" && userRole != "Admin" && userRole != "Receptionist")
+                return Forbid();
+
+            try
+            {
+                var allUsers = await _userService.GetAllUsersAsync();
+                var allAppointments = await _appointmentService.GetAllAppointmentsAsync();
+                // Temel metrikler
+                ViewBag.UserName = allUsers.FirstOrDefault(u => u.Id == userId)?.Name ?? "";
+                ViewBag.TodayAppointments = allAppointments.Count(a => a.AppointmentDate.Date == DateTime.Today);
+                ViewBag.TotalPatients = allUsers.Count(u => u.Role == "Patient");
+                ViewBag.PendingTasks = 0; // Gelecekte görev sistemi entegrasyonu
+                ViewBag.CompletedTasks = 0;
+            }
+            catch (Exception)
+            {
+                ViewBag.TodayAppointments = 0;
+                ViewBag.TotalPatients = 0;
+                ViewBag.PendingTasks = 0;
+                ViewBag.CompletedTasks = 0;
+            }
+
+            return View();
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetStatistics()
         {
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
             if (userRole != "Admin")
             {
@@ -124,7 +158,7 @@ namespace HospitalManagementSystem.Controllers
                         doctors = await _userService.GetUserCountByRoleAsync("Doctor"),
                         nurses = await _userService.GetUserCountByRoleAsync("Nurse"),
                         patients = await _userService.GetUserCountByRoleAsync("Patient"),
-                        active = await _userService.GetActiveUsersCountAsync()
+                        active = await _userService.GetTotalUsersCountAsync()
                     },
                     appointments = new
                     {

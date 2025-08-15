@@ -1,4 +1,3 @@
-using HospitalManagementSystem.Models;
 using HospitalManagementSystem.DTOs;
 
 namespace HospitalManagementSystem.Services
@@ -6,9 +5,9 @@ namespace HospitalManagementSystem.Services
     public interface IAuthService
     {
         // Authentication
-        Task<User?> AuthenticateAsync(string email, string password);
+        Task<UserDto?> AuthenticateAsync(string email, string password);
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
-        Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto);
+        Task<AuthResponseDto> RegisterAsync(CreateUserDto createUserDto);
         Task LogoutAsync(string userId);
 
         // Password Management
@@ -18,16 +17,16 @@ namespace HospitalManagementSystem.Services
         Task<string> HashPasswordAsync(string password);
 
         // Token Management
-        Task<string> GenerateTokenAsync(User user);
+        Task<string> GenerateTokenAsync(UserDto user);
         Task<bool> ValidateTokenAsync(string token);
-        Task<User?> GetUserFromTokenAsync(string token);
+        Task<UserDto?> GetUserFromTokenAsync(string token);
         Task RevokeTokenAsync(string token);
+    Task<RefreshTokenRecord> CreateRefreshTokenAsync(string userId, TimeSpan? lifetime = null);
+    Task<RefreshTokenRecord?> ValidateRefreshTokenAsync(string token);
+    Task RevokeRefreshTokenAsync(string token);
+    Task RevokeAllRefreshTokensForUserAsync(string userId);
 
-        // Session Management
-        Task<bool> CreateSessionAsync(string userId, string sessionId);
-        Task<bool> ValidateSessionAsync(string userId, string sessionId);
-        Task RevokeSessionAsync(string userId, string sessionId);
-        Task RevokeAllSessionsAsync(string userId);
+    // (Deprecated) Session Management kaldırıldı – JWT kullanılıyor
 
         // Security
         Task<bool> IsAccountLockedAsync(string email);
@@ -39,8 +38,8 @@ namespace HospitalManagementSystem.Services
         // User Validation
         Task<bool> IsEmailUniqueAsync(string email, string? excludeUserId = null);
         Task<bool> IsPhoneUniqueAsync(string phone, string? excludeUserId = null);
-        Task<User?> GetUserByEmailAsync(string email);
-        Task<User?> GetUserByPhoneAsync(string phone);
+        Task<UserDto?> GetUserByEmailAsync(string email);
+        Task<UserDto?> GetUserByPhoneAsync(string phone);
 
         // Role Management
         Task<bool> HasRoleAsync(string userId, string role);

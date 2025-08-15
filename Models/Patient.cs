@@ -76,14 +76,20 @@ namespace HospitalManagementSystem.Models
         [Display(Name = "Yakınlık")]
         public string? EmergencyContactRelation { get; set; }
 
-        [Display(Name = "Aktif")]
-        public bool IsActive { get; set; } = true;
+    // IsActive kaldırıldı; eski belgelerdeki fazladan alanları yutmak için ExtraElements
+    [BsonExtraElements]
+    public Dictionary<string, object>? LegacyFields { get; set; }
 
         [Display(Name = "Kayıt Tarihi")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Display(Name = "Güncelleme Tarihi")]
         public DateTime? UpdatedAt { get; set; }
+
+    // Soft delete alanları
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
         // Computed properties
         [Display(Name = "Ad Soyad")]

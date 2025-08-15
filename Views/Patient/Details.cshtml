@@ -1,0 +1,51 @@
+@model HospitalManagementSystem.DTOs.PatientDto
+@{
+	ViewData["Title"] = "Hasta Detay";
+	string GenderText = Model.Gender switch { "Male" => "Erkek", "Female" => "Kadın", "Other" => "Diğer", _ => Model.Gender };
+}
+<div class="container mt-4">
+	<h2>Hasta Detay</h2>
+	<hr />
+	<div class="row">
+		<div class="col-md-6">
+			<dl class="row">
+				<dt class="col-sm-4">Ad Soyad</dt>
+				<dd class="col-sm-8">@Model.FullName</dd>
+
+				<dt class="col-sm-4">TC Kimlik No</dt>
+				<dd class="col-sm-8">@Model.TcNo</dd>
+
+				<dt class="col-sm-4">E-posta</dt>
+				<dd class="col-sm-8">@Model.Email</dd>
+
+				<dt class="col-sm-4">Telefon</dt>
+				<dd class="col-sm-8">@Model.PhoneNumber</dd>
+
+				<dt class="col-sm-4">Doğum Tarihi</dt>
+				<dd class="col-sm-8">@Model.DateOfBirth.ToString("dd.MM.yyyy") (@Model.Age)</dd>
+
+				<dt class="col-sm-4">Cinsiyet</dt>
+				<dd class="col-sm-8">@GenderText</dd>
+
+				<dt class="col-sm-4">Kan Grubu</dt>
+				<dd class="col-sm-8">@Model.BloodType</dd>
+
+				<dt class="col-sm-4">Adres</dt>
+				<dd class="col-sm-8">@Model.Address</dd>
+
+				<dt class="col-sm-4">Acil Kişi</dt>
+				<dd class="col-sm-8">@Model.EmergencyContactName (@Model.EmergencyContactPhone)</dd>
+
+				<dt class="col-sm-4">Alerjiler</dt>
+				<dd class="col-sm-8">@(Model.Allergies != null && Model.Allergies.Any() ? string.Join(", ", Model.Allergies) : "-")</dd>
+
+				<dt class="col-sm-4">Kronik Hastalıklar</dt>
+				<dd class="col-sm-8">@(Model.ChronicDiseases != null && Model.ChronicDiseases.Any() ? string.Join(", ", Model.ChronicDiseases) : "-")</dd>
+			</dl>
+		</div>
+	</div>
+	<div class="mt-3">
+		<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Düzenle</a>
+		<a asp-action="Index" class="btn btn-secondary">Geri</a>
+	</div>
+</div>

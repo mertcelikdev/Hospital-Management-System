@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Services;
+using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Attributes;
 
 namespace HospitalManagementSystem.Controllers
@@ -8,10 +9,10 @@ namespace HospitalManagementSystem.Controllers
     [AuthorizeRole("Admin", "Doctor", "Nurse")]
     public class PatientNoteController : Controller
     {
-        private readonly PatientNoteService _patientNoteService;
-        private readonly IUserService _userService;
+    private readonly IPatientNoteService _patientNoteService;
+    private readonly IUserService _userService;
 
-        public PatientNoteController(PatientNoteService patientNoteService, IUserService userService)
+    public PatientNoteController(IPatientNoteService patientNoteService, IUserService userService)
         {
             _patientNoteService = patientNoteService;
             _userService = userService;
@@ -20,23 +21,23 @@ namespace HospitalManagementSystem.Controllers
         // Hasta notları listesi
         public async Task<IActionResult> Index(string? patientId)
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userRole))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            List<PatientNote> notes;
+            List<PatientNoteDto> notes;
 
             if (!string.IsNullOrEmpty(patientId))
             {
-                notes = await _patientNoteService.GetNotesByPatientAndCreatorAsync(patientId, userId, userRole);
+                notes = await _patientNoteService.GetNotesByPatientIdAsync(patientId);
             }
             else
             {
-                notes = await _patientNoteService.GetNotesByCreatorAsync(userId, userRole);
+                notes = await _patientNoteService.GetNotesByCreatorAsync(userId);
             }
 
             ViewBag.PatientId = patientId;
@@ -51,10 +52,10 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
+            var note = await _patientNoteService.GetNoteByIdAsync(id);
             if (note == null)
             {
                 return NotFound();
@@ -67,51 +68,39 @@ namespace HospitalManagementSystem.Controllers
         public async Task<IActionResult> Create(string? patientId)
         {
             ViewBag.PatientId = patientId;
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
+            await PopulateCreateViewBagsAsync(HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value!);
             return View();
         }
 
         // Yeni hasta notu oluşturma POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PatientNote note)
+    public async Task<IActionResult> Create(CreatePatientNoteDto model)
         {
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                var userRole = HttpContext.Session.GetString("UserRole");
-
-                note.Id = null; // MongoDB otomatik ID oluşturacak
-                note.CreatedAt = DateTime.UtcNow;
-                note.CreatedByUserName = HttpContext.Session.GetString("UserName") ?? "";
-                
-                await _patientNoteService.CreateNoteAsync(note);
+    var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+        var created = await _patientNoteService.CreateNoteAsync(model, userId);
                 TempData["SuccessMessage"] = "Hasta notu başarıyla oluşturuldu.";
-                
-                if (!string.IsNullOrEmpty(note.PatientId))
-                {
-                    return RedirectToAction(nameof(Index), new { patientId = note.PatientId });
-                }
-                
-                return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { patientId = model.PatientId });
             }
 
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
-            return View(note);
+            await PopulateCreateViewBagsAsync(HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value!);
+        return View(model);
         }
 
         // Hasta notu düzenleme formu
-        public async Task<IActionResult> Edit(string id)
+    public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
             {
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
+            var note = await _patientNoteService.GetNoteByIdAsync(id);
             if (note == null)
             {
                 return NotFound();
@@ -119,26 +108,26 @@ namespace HospitalManagementSystem.Controllers
 
             ViewBag.Note = note;
             await PopulateCreateViewBagsAsync(userRole!);
-            return View(note);
+                var updateModel = new UpdatePatientNoteDto
+                {
+                    Content = note.Content,
+                    Category = note.Category,
+                    IsUrgent = note.IsUrgent,
+                    FollowUpDate = note.FollowUpDate
+                };
+            return View(updateModel);
         }
 
         // Hasta notu düzenleme POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, PatientNote note)
+    public async Task<IActionResult> Edit(string id, UpdatePatientNoteDto model)
         {
-            if (id != note.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                var userId = HttpContext.Session.GetString("UserId");
-                var userRole = HttpContext.Session.GetString("UserRole");
-
-                var success = await _patientNoteService.UpdateNoteAsync(id, note, userId!, userRole!);
-                if (success)
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+        var updated = await _patientNoteService.UpdateNoteAsync(id, model, userId);
+        if (updated != null)
                 {
                     TempData["SuccessMessage"] = "Hasta notu başarıyla güncellendi.";
                     return RedirectToAction(nameof(Index));
@@ -149,8 +138,8 @@ namespace HospitalManagementSystem.Controllers
                 }
             }
 
-            await PopulateCreateViewBagsAsync(HttpContext.Session.GetString("UserRole")!);
-            return View(note);
+            await PopulateCreateViewBagsAsync(HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value!);
+        return View(model);
         }
 
         // Hasta notu silme
@@ -163,16 +152,16 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            var note = await _patientNoteService.GetNoteByIdAsync(id, userId!, userRole!);
+            var note = await _patientNoteService.GetNoteByIdAsync(id);
             if (note == null)
             {
                 return NotFound();
             }
 
-            var success = await _patientNoteService.DeleteNoteAsync(id, userId!, userRole!);
+            var success = await _patientNoteService.DeleteNoteAsync(id);
             if (success)
             {
                 TempData["SuccessMessage"] = "Hasta notu başarıyla silindi.";
@@ -194,10 +183,10 @@ namespace HospitalManagementSystem.Controllers
                 return RedirectToAction(nameof(Index), new { patientId });
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            var notes = await _patientNoteService.SearchNotesAsync(searchTerm, userId!, userRole!, patientId);
+            var notes = await _patientNoteService.SearchNotesAsync(new BaseSearchDto { SearchTerm = searchTerm });
 
             ViewBag.SearchTerm = searchTerm;
             ViewBag.PatientId = patientId;
@@ -219,10 +208,10 @@ namespace HospitalManagementSystem.Controllers
                 return NotFound();
             }
 
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            var notes = await _patientNoteService.GetNotesByPatientAndCreatorAsync(patientId, userId!, userRole!);
+            var notes = await _patientNoteService.GetNotesByPatientIdAsync(patientId);
             var patient = await _userService.GetUserByIdAsync(patientId);
 
             ViewBag.Patient = patient;
@@ -246,7 +235,7 @@ namespace HospitalManagementSystem.Controllers
                     ViewBag.Patients = await _userService.GetUsersByRoleAsync("Patient");
                     break;
                 default:
-                    ViewBag.Patients = new List<User>();
+                    ViewBag.Patients = new List<UserDto>();
                     break;
             }
         }

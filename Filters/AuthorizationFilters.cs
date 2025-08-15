@@ -8,7 +8,7 @@ namespace HospitalManagementSystem.Filters
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userRole = context.HttpContext.Session.GetString("UserRole");
+            var userRole = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             
             if (string.IsNullOrEmpty(userRole) || userRole != "Admin")
             {
@@ -25,7 +25,7 @@ namespace HospitalManagementSystem.Filters
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userRole = context.HttpContext.Session.GetString("UserRole");
+            var userRole = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             
             if (string.IsNullOrEmpty(userRole) || userRole != "Doctor")
             {
@@ -42,7 +42,7 @@ namespace HospitalManagementSystem.Filters
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userRole = context.HttpContext.Session.GetString("UserRole");
+            var userRole = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             
             if (string.IsNullOrEmpty(userRole) || userRole != "Nurse")
             {
@@ -59,7 +59,7 @@ namespace HospitalManagementSystem.Filters
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userRole = context.HttpContext.Session.GetString("UserRole");
+            var userRole = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             
             if (string.IsNullOrEmpty(userRole) || (userRole != "Doctor" && userRole != "Nurse" && userRole != "Admin" && userRole != "Staff"))
             {
@@ -76,7 +76,7 @@ namespace HospitalManagementSystem.Filters
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userId = context.HttpContext.Session.GetString("UserId");
+            var userId = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             
             if (string.IsNullOrEmpty(userId))
             {

@@ -72,14 +72,14 @@
                                 <th>Bölüm Başkanı</th>
                                 <th>Lokasyon</th>
                                 <th>Personel</th>
-                                <th>Durum</th>
+                                <!-- Durum sütunu kaldırıldı -->
                                 <th width="150">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model)
                             {
-                                <tr class="dept-row @(!item.IsActive ? "table-secondary" : "")">
+                                <tr class="dept-row">
                                     <td>
                                         <div>
                                             <strong>@item.Name</strong>
@@ -119,20 +119,7 @@
                                             <span class="badge bg-warning" title="Personel">P: @item.StaffCount</span>
                                         </div>
                                     </td>
-                                    <td>
-                                        @if (item.IsActive)
-                                        {
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-check me-1"></i>Aktif
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                <i class="fas fa-pause me-1"></i>Pasif
-                                            </span>
-                                        }
-                                    </td>
+                                    <!-- Durum hücresi kaldırıldı -->
                                     <td>
                                         <div class="btn-group" role="group" aria-label="İşlemler">
                                             <a asp-action="Details" asp-route-id="@item.Id" 
@@ -143,23 +130,10 @@
                                                class="btn btn-sm btn-outline-primary" title="Düzenle">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            @if (!item.IsActive)
-                                            {
-                                                <form asp-action="Activate" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-sm btn-outline-success" 
-                                                            title="Aktif Et" onclick="return confirm('Bu departmanı aktif hale getirmek istediğinizden emin misiniz?')">
-                                                        <i class="fas fa-play"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                            else
-                                            {
-                                                <a asp-action="Delete" asp-route-id="@item.Id" 
-                                                   class="btn btn-sm btn-outline-danger" title="Sil/Pasif Et">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            }
+                                            <a asp-action="Delete" asp-route-id="@item.Id" 
+                                               class="btn btn-sm btn-outline-danger" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

@@ -57,8 +57,6 @@ namespace HospitalManagementSystem.Models
         
         public DateTime? UpdatedAt { get; set; }
 
-        public bool IsActive { get; set; } = true;
-
-        public bool IsLowStock => StockQuantity <= MinimumStock;
+    public bool IsLowStock => StockQuantity <= MinimumStock;
     }
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using HospitalManagementSystem.Models;
+using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Services;
 using HospitalManagementSystem.Attributes;
 
@@ -8,10 +8,30 @@ namespace HospitalManagementSystem.Controllers
     public class UserController : Controller
     {
         private readonly IUserService _userService;
+    private readonly IDepartmentService _departmentService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IDepartmentService departmentService)
         {
             _userService = userService;
+            _departmentService = departmentService;
+        }
+
+        // Geçici yardımcı: Doktoru departmana ata (Admin)
+        [HttpPost]
+        public async Task<IActionResult> AssignDepartment(string doctorName, string departmentName)
+        {
+            var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            if(role != "Admin") return Forbid();
+            if(string.IsNullOrWhiteSpace(doctorName) || string.IsNullOrWhiteSpace(departmentName)) return BadRequest("Parametreler gerekli");
+            var users = await _userService.GetAllUsersAsync();
+            var doctor = users.FirstOrDefault(u => u.Role == "Doctor" && u.Name.Contains(doctorName, StringComparison.OrdinalIgnoreCase));
+            if(doctor == null) return NotFound("Doktor bulunamadı");
+            var departments = await _departmentService.GetAllDepartmentsAsync();
+            var dep = departments.FirstOrDefault(d => d.Name.Contains(departmentName, StringComparison.OrdinalIgnoreCase));
+            if(dep == null) return NotFound("Departman bulunamadı");
+            var update = new UpdateUserDto { Name = doctor.Name, Email = doctor.Email, Phone = doctor.Phone, DepartmentId = dep.Id };
+            await _userService.UpdateUserAsync(doctor.Id!, update);
+            return Ok(new { success = true, message = $"{doctor.Name} => {dep.Name}" });
         }
 
         // Kullanıcı listesi (Admin ve Staff)
@@ -28,7 +48,7 @@ namespace HospitalManagementSystem.Controllers
         {
             var patients = await _userService.GetUsersByRoleAsync("Patient");
             
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             ViewBag.CurrentUserRole = userRole;
             
             return View(patients);
@@ -62,23 +82,16 @@ namespace HospitalManagementSystem.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AuthorizeRole("Admin", "Doctor", "Staff")]
-        public async Task<IActionResult> Create(User user)
+        public async Task<IActionResult> Create(CreateUserDto createUserDto)
         {
             if (ModelState.IsValid)
             {
-                user.Id = null; // MongoDB otomatik ID oluşturacak
-                user.CreatedAt = DateTime.UtcNow;
-                user.IsActive = true;
-
-                // Şifreyi hash'le
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
-
-                await _userService.CreateUserAsync(user);
+                var user = await _userService.CreateUserAsync(createUserDto);
                 TempData["SuccessMessage"] = "Kullanıcı başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(user);
+            return View(createUserDto);
         }
 
         // Kullanıcı düzenleme formu
@@ -101,27 +114,16 @@ namespace HospitalManagementSystem.Controllers
         // Kullanıcı düzenleme POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, User user)
+        public async Task<IActionResult> Edit(string id, UpdateUserDto updateUserDto)
         {
-            if (id != user.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                // Şifre değiştirilmişse hash'le
-                if (!string.IsNullOrEmpty(user.Password))
-                {
-                    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
-                }
-
-                await _userService.UpdateUserAsync(id, user);
+                await _userService.UpdateUserAsync(id, updateUserDto);
                 TempData["SuccessMessage"] = "Kullanıcı başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(user);
+            return View(updateUserDto);
         }
 
         // Kullanıcı silme (Sadece Admin)

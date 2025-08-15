@@ -97,6 +97,9 @@ namespace HospitalManagementSystem.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public bool IsActive { get; set; } = true;
+    // IsActive kaldırıldı: tüm kullanıcılar varsayılan olarak aktif kabul edilir
+    // Eski belgelerde kalan fazladan alanları (IsActive vb.) yutmak için:
+    [BsonExtraElements]
+    public Dictionary<string, object>? LegacyFields { get; set; }
     }
 }

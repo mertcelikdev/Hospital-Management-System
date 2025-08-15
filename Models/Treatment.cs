@@ -64,7 +64,7 @@ namespace HospitalManagementSystem.Models
 
         public DateTime? UpdatedAt { get; set; }
 
-        public bool IsActive => Status == TreatmentStatus.InProgress || Status == TreatmentStatus.Planned;
+    // IsActive kaldırıldı (gerektiğinde Status kontrolü direkt yapılacak)
 
         public bool IsCompleted => Status == TreatmentStatus.Completed;
     }

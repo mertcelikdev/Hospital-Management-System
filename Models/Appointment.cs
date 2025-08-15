@@ -43,6 +43,9 @@ namespace HospitalManagementSystem.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
+    // Eski dökümanlardaki fazladan alanları yoksaymak için
+    [BsonExtraElements]
+    public Dictionary<string, object>? ExtraElements { get; set; }
 
         [Required]
         public string PatientId { get; set; } = string.Empty;
@@ -59,11 +62,19 @@ namespace HospitalManagementSystem.Models
         [Required]
         public AppointmentType Type { get; set; }
 
+    // İlgili departman (doktor üzerinden seçilecek)
+    public string? DepartmentId { get; set; }
+
         public string Notes { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+    // Soft delete alanları
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
         // Additional properties for compatibility
         public string CreatedBy { get; set; } = string.Empty;

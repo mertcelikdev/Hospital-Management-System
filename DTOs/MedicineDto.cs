@@ -99,29 +99,11 @@ namespace HospitalManagementSystem.DTOs
         public bool RequiresPrescription { get; set; }
         public string? UsageInstructions { get; set; }
         public string? SideEffects { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public bool IsLowStock { get; set; }
         public bool IsExpired { get; set; }
         public bool IsExpiringSoon { get; set; }
-    }
-
-    public class MedicineSearchDto
-    {
-        public string? Name { get; set; }
-        public string? Category { get; set; }
-        public string? Manufacturer { get; set; }
-        public bool? RequiresPrescription { get; set; }
-        public bool? IsLowStock { get; set; }
-        public bool? IsExpired { get; set; }
-        public bool? IsExpiringSoon { get; set; }
-        public decimal? MinPrice { get; set; }
-        public decimal? MaxPrice { get; set; }
-        public DateTime? ExpiryDateFrom { get; set; }
-        public DateTime? ExpiryDateTo { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
     }
 
     public class StockUpdateDto

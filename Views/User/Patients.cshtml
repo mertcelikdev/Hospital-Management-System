@@ -49,21 +49,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title mb-0">Aktif Hasta</h6>
-                            <h2 class="mb-0">@Model.Count(u => u.IsActive)</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-heartbeat fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Aktif/Pasif hasta kartı kaldırıldı -->
         <div class="col-md-3">
             <div class="card border-0 shadow-sm bg-info text-white">
                 <div class="card-body">
@@ -111,13 +97,7 @@
                         <option value="Other">Diğer</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select id="statusFilter" class="form-select" onchange="filterPatients()">
-                        <option value="">Tüm Durumlar</option>
-                        <option value="true">Aktif</option>
-                        <option value="false">Pasif</option>
-                    </select>
-                </div>
+                <!-- Durum filtresi kaldırıldı -->
                 <div class="col-md-2">
                     <select id="doctorFilter" class="form-select" onchange="filterPatients()">
                         <option value="">Tüm Doktorlar</option>
@@ -151,7 +131,7 @@
                             <th>İletişim</th>
                             <th>Doktor</th>
                             <th>Hemşire</th>
-                            <th>Durum</th>
+                            <!-- Durum sütunu kaldırıldı -->
                             <th>Kayıt Tarihi</th>
                             <th>İşlemler</th>
                         </tr>
@@ -216,16 +196,7 @@
                                             </span>
                                         }
                                     </td>
-                                    <td>
-                                        @if (patient.IsActive)
-                                        {
-                                            <span class="badge bg-success">Aktif</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">Pasif</span>
-                                        }
-                                    </td>
+                                    <!-- Durum hücresi kaldırıldı -->
                                     <td>
                                         <small>@patient.CreatedAt.ToString("dd.MM.yyyy")</small>
                                     </td>
@@ -257,7 +228,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="6" class="text-center py-4">
                                     <i class="fas fa-user-injured fa-3x text-muted mb-3"></i>
                                     <p class="text-muted">Henüz hasta kaydı bulunmamaktadır.</p>
                                     @if (currentUserRole == "Admin" || currentUserRole == "Staff")
@@ -281,25 +252,23 @@
         function filterPatients() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const genderFilter = document.getElementById('genderFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
+            const statusFilter = '';
             const doctorFilter = document.getElementById('doctorFilter').value;
             const table = document.getElementById('patientsTable');
             const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
 
             for (let i = 0; i < rows.length; i++) {
-                if (rows[i].cells.length < 7) continue; // Skip empty state row
+                if (rows[i].cells.length < 6) continue; // Skip empty state row
 
                 const row = rows[i];
                 const name = row.cells[0].textContent.toLowerCase();
                 const email = row.cells[1].textContent.toLowerCase();
                 const doctorStatus = row.cells[2].textContent;
-                const status = row.cells[4].textContent;
+                const status = '';
 
                 const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
                 const matchesGender = !genderFilter || name.includes(genderFilter.toLowerCase());
-                const matchesStatus = !statusFilter || 
-                                    (statusFilter === 'true' && status.includes('Aktif')) ||
-                                    (statusFilter === 'false' && status.includes('Pasif'));
+                const matchesStatus = true; // durum kontrolü kaldırıldı
                 const matchesDoctor = !doctorFilter ||
                                     (doctorFilter === 'assigned' && doctorStatus.includes('Atanmış')) ||
                                     (doctorFilter === 'unassigned' && doctorStatus.includes('Atanmamış'));
@@ -315,7 +284,7 @@
         function clearFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('genderFilter').value = '';
-            document.getElementById('statusFilter').value = '';
+            // status filter kaldırıldı
             document.getElementById('doctorFilter').value = '';
             filterPatients();
         }

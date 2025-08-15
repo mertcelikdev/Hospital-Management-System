@@ -15,32 +15,30 @@ namespace HospitalManagementSystem.Attributes
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            // Session'dan kullanıcı bilgilerini al
-            var userRole = context.HttpContext.Session.GetString("UserRole");
-            var userId = context.HttpContext.Session.GetString("UserId");
-
-            if (string.IsNullOrEmpty(userRole) || string.IsNullOrEmpty(userId))
+            // Önce JWT Claims üzerinden oku
+            var claimsUser = context.HttpContext.User;
+            if (claimsUser?.Identity?.IsAuthenticated != true)
             {
-                // Kullanıcı giriş yapmamış, login sayfasına yönlendir
                 context.Result = new RedirectToActionResult("Login", "Auth", null);
                 return;
             }
 
-            if (!string.IsNullOrEmpty(userRole))
+            var userRole = claimsUser.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            var userId = claimsUser.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userRole) || string.IsNullOrWhiteSpace(userId))
             {
-                if (!_allowedRoles.Contains(userRole))
-                {
-                    // Yetkisiz erişim
-                    context.Result = new RedirectToActionResult("AccessDenied", "Auth", null);
-                    return;
-                }
-            }
-            else
-            {
-                // Geçersiz rol
                 context.Result = new RedirectToActionResult("Login", "Auth", null);
                 return;
             }
+
+            if (!_allowedRoles.Contains(userRole))
+            {
+                context.Result = new RedirectToActionResult("AccessDenied", "Auth", null);
+                return;
+            }
+
+            context.HttpContext.Items["CurrentUserRole"] = userRole;
 
             base.OnActionExecuting(context);
         }

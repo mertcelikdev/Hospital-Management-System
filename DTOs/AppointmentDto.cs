@@ -24,6 +24,9 @@ namespace HospitalManagementSystem.DTOs
 
         public string Priority { get; set; } = "Normal";
         public bool IsUrgent { get; set; } = false;
+    public string? DepartmentId { get; set; }
+    // Yeni: Randevu türü seçimi (muayene, kontrol vb.)
+    public string? Type { get; set; }
     }
 
     public class UpdateAppointmentDto
@@ -43,6 +46,8 @@ namespace HospitalManagementSystem.DTOs
         public string Priority { get; set; } = "Normal";
         public bool IsUrgent { get; set; } = false;
         public string Status { get; set; } = "Scheduled";
+    public string? DepartmentId { get; set; }
+    public string? Type { get; set; }
     }
 
     public class AppointmentDto
@@ -50,6 +55,7 @@ namespace HospitalManagementSystem.DTOs
         public string Id { get; set; } = string.Empty;
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
+    public string PatientTc { get; set; } = string.Empty;
         public string PatientPhone { get; set; } = string.Empty;
         public string DoctorId { get; set; } = string.Empty;
         public string DoctorName { get; set; } = string.Empty;
@@ -62,35 +68,17 @@ namespace HospitalManagementSystem.DTOs
         public string Priority { get; set; } = string.Empty;
         public bool IsUrgent { get; set; }
         public string Status { get; set; } = string.Empty;
+    public string? Type { get; set; }
+    public string? DepartmentId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
         public string? UpdatedBy { get; set; }
         public bool IsPastDue { get; set; }
         public string? CancellationReason { get; set; }
-    }
-
-    public class AppointmentSearchDto
-    {
-        public string? PatientId { get; set; }
-        public string? DoctorId { get; set; }
-        public string? Status { get; set; }
-        public string? Priority { get; set; }
-        public DateTime? FromDate { get; set; }
-        public DateTime? ToDate { get; set; }
-        public bool? IsUrgent { get; set; }
-        public string? SearchTerm { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
-
-    public class AppointmentStatusUpdateDto
-    {
-        [Required(ErrorMessage = "Durum gereklidir")]
-        public string Status { get; set; } = string.Empty;
-        
-        public string? Notes { get; set; }
-        public string? CancellationReason { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
     }
 
     public class RescheduleAppointmentDto

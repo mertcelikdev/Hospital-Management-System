@@ -50,34 +50,6 @@ namespace HospitalManagementSystem.DTOs
         public string? EmergencyContact { get; set; }
     }
 
-    public class ChangePasswordDto
-    {
-        [Required(ErrorMessage = "Mevcut şifre gereklidir")]
-        [DataType(DataType.Password)]
-        public string CurrentPassword { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Yeni şifre gereklidir")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Şifre en az 6 karakter olmalıdır")]
-        [DataType(DataType.Password)]
-        public string NewPassword { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Şifre onayı gereklidir")]
-        [DataType(DataType.Password)]
-        [Compare("NewPassword", ErrorMessage = "Şifreler eşleşmiyor")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-    }
-
-    public class UserDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
     public class AuthResponseDto
     {
         public bool IsSuccess { get; set; }

@@ -1,95 +1,150 @@
-@model List<HospitalManagementSystem.DTOs.PatientDto>
+@model HospitalManagementSystem.ViewModels.PatientListViewModel
+@functions{
+    string BuildPageUrl(int page){
+        var routeVals = new Dictionary<string,object?>
+        {
+            ["page"] = page,
+            ["pageSize"] = Model.PageSize,
+            ["sort"] = Model.Sort,
+            ["dir"] = Model.Dir,
+            ["q"] = Model.Search
+        };
+        return Url.Action("Index", routeVals) ?? "#";
+    }
+}
 @{
     ViewData["Title"] = "Hasta Listesi";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
+<div class="container-fluid pt-3">
+    @if(TempData["SuccessMessage"] != null){
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+    }
+    <div class="patient-layout">
+        <!-- Sol Filtre Paneli -->
+        <aside class="patient-filters mb-3">
+            <div class="enb-filter-card d-flex flex-column h-100">
+                <div class="enb-filter-header">
+                    <span class="enb-filter-icon"><i class="fas fa-filter"></i></span>
+                    <h6 class="mb-0">Filtreler</h6>
+                </div>
+                <div class="enb-filter-body flex-grow-1">
+                    <form method="get" id="filterForm">
+                        <!-- İsim -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">İsim</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input name="name" value="@Context.Request.Query["name"]" type="text" class="form-control" placeholder="Ad / Soyad" />
+                            </div>
+                        </div>
+                        <!-- TC -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">TC</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                <input name="tc" maxlength="11" value="@Context.Request.Query["tc"]" type="text" class="form-control" placeholder="TC No" />
+                            </div>
+                        </div>
+                        <!-- Sıralama -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase">Sırala</label>
+                                <select name="sort" class="form-select form-select-sm">
+                                    @if(Model.Sort=="name"){<option selected value="name">Ad</option>} else {<option value="name">Ad</option>}
+                                    @if(Model.Sort=="tc"){<option selected value="tc">TC</option>} else {<option value="tc">TC</option>}
+                                    @if(Model.Sort=="age"){<option selected value="age">Yaş</option>} else {<option value="age">Yaş</option>}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase">Yön</label>
+                                <select name="dir" class="form-select form-select-sm">
+                                    @if(Model.Dir=="asc"){<option selected value="asc">Artan</option>} else {<option value="asc">Artan</option>}
+                                    @if(Model.Dir=="desc"){<option selected value="desc">Azalan</option>} else {<option value="desc">Azalan</option>}
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Sayfa Boyutu -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">Sayfa Boyutu</label>
+                            <select name="pageSize" class="form-select form-select-sm">
+                                @foreach(var size in new[]{10,25,50}){
+                                    if(Model.PageSize==size){
+                                        <option selected value="@size">@size</option>
+                                    } else {
+                                        <option value="@size">@size</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <!-- Butonlar -->
+                        <div class="d-grid gap-2 mt-2 mb-2">
+                            <button class="btn btn-sm btn-primary" type="button" onclick="submitAjax(1)"><i class="fas fa-search me-1"></i>Uygula</button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="resetFilters()"><i class="fas fa-undo me-1"></i>Temizle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        <!-- Sağ Liste Kartı -->
+        <div class="patient-list">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">
-                        <i class="fas fa-users mr-2"></i>
-                        Hasta Listesi
-                    </h3>
-                    <div>
-                        <a href="@Url.Action("Create")" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Yeni Hasta
-                        </a>
+                <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <h3 class="card-title mb-0"><i class="fas fa-users mr-2"></i>Hasta Listesi</h3>
+                        <span class="badge bg-secondary">@Model.TotalCount toplam</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="@Url.Action("Create")" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Yeni</a>
+                        <a href="@Url.Action("Deleted")" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i> Silinenler</a>
                     </div>
                 </div>
-                <div class="card-body">
-                    <!-- Search -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <input type="text" id="liveSearchInput" maxlength="11" class="form-control" placeholder="TC Kimlik No ile arayın..." autocomplete="off" />
-                                <div class="input-group-append">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                            </div>
-                            <small class="text-muted">Sadece TC ile arama (en az 3 hane, sadece rakam).</small>
-                        </div>
-                    </div>
-
-                    @if (Model.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="patientTable">
-                                <thead>
-                                    <tr>
-                                        <th>Ad Soyad</th>
-                                        <th>TC No</th>
-                                        <th>Telefon</th>
-                                        <th>E-posta</th>
-                                        <th>Yaş</th>
-                                        <th>Kan Grubu</th>
-                                        <th>İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var patient in Model)
-                                    {
-                                        <tr class="patient-row">
-                                            <td><strong>@patient.FullName</strong></td>
-                                            <td>@patient.TcNo</td>
-                                            <td>@patient.PhoneNumber</td>
-                                            <td>@patient.Email</td>
-                                            <td>@patient.Age</td>
-                                            <td class="text-dark fw-semibold">@patient.BloodType</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="@Url.Action("Details", new { id = patient.Id })" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
-                                                    <a href="@Url.Action("Edit", new { id = patient.Id })" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
-                                                    <a href="@Url.Action("MedicalHistory", new { id = patient.Id })" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
-                                                    <a href="@Url.Action("Delete", new { id = patient.Id })" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="small text-muted">Sayfa Boyutu: 10 (maksimum)</div>
-                            <nav><ul class="pagination pagination-sm mb-0" id="patientPagination"></ul></nav>
-                            <div class="small text-muted" id="patientPageInfo"></div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            @if (!string.IsNullOrEmpty(ViewBag.SearchQuery as string))
-                            {
-                                <text>Arama kriterlerinize uygun hasta bulunamadı.</text>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>TC No</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th class="text-center">Yaş</th>
+                                <th>Kan</th>
+                                <th style="width:160px">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if(Model.Patients.Any()){
+                            @foreach(var p in Model.Patients){
+                                <tr>
+                                    <td><strong>@p.FullName</strong></td>
+                                    <td>@p.TcNo</td>
+                                    <td>@p.PhoneNumber</td>
+                                    <td>@p.Email</td>
+                                    <td class="text-center">@p.Age</td>
+                                    <td>@p.BloodType</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a class="btn btn-outline-info" href="@Url.Action("Details", new { id = p.Id })"><i class="fas fa-eye"></i></a>
+                                            <a class="btn btn-outline-warning" href="@Url.Action("Edit", new { id = p.Id })"><i class="fas fa-edit"></i></a>
+                                            <a class="btn btn-outline-primary" href="@Url.Action("MedicalHistory", new { id = p.Id })"><i class="fas fa-file-medical"></i></a>
+                                            <a class="btn btn-outline-danger" href="@Url.Action("Delete", new { id = p.Id })"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
                             }
-                            else
-                            {
-                                <text>Henüz hasta kaydı bulunmuyor.</text>
-                            }
-                        </div>
-                    }
+                        } else {
+                            <tr><td colspan="7" class="text-center py-4 text-muted">Kayıt bulunamadı</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex flex-wrap gap-3 justify-content-between align-items-center">
+                    <div class="small text-muted" id="pageInfo">Sayfa @Model.Page / @Model.TotalPages</div>
+                    <nav id="paginationNav"></nav>
+                    <div class="small text-muted" id="rangeInfo">@(Model.TotalCount==0?"0":$"{(Model.Page-1)*Model.PageSize+1}-{Math.Min(Model.Page*Model.PageSize,Model.TotalCount)}") / @Model.TotalCount</div>
                 </div>
             </div>
         </div>
@@ -98,83 +153,212 @@
 
 @section Scripts {
     <script>
-    const input = document.getElementById('liveSearchInput');
-    const tableBody = document.querySelector('#patientTable tbody');
-    let patientCurrentPage = 1; const patientPageSize = 10; let lastRenderedList = [];
-        let typingTimer; let lastQuery = '';
-        input.addEventListener('keyup', function(){
-            clearTimeout(typingTimer);
-            const val = input.value.trim();
-            if(val === lastQuery) return;
-            typingTimer = setTimeout(()=> doSearch(val), 300);
+    function resetFilters(){
+        document.querySelector('input[name="name"]').value='';
+        document.querySelector('input[name="tc"]').value='';
+        document.querySelector('select[name="sort"]').value='name';
+        document.querySelector('select[name="dir"]').value='asc';
+        document.querySelector('select[name="pageSize"]').value='10';
+        submitAjax(1);
+    }
+
+    let debounceTimer; let currentPage = @Model.Page; let totalPages = @Model.TotalPages;
+    const tableBody = document.querySelector('table tbody');
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+        hookInputs();
+        // İlk yüklemede dinamik footer'a aktar
+        updateFooter(@Model.TotalCount);
+    initFixedFilter();
+    });
+
+    function hookInputs(){
+        document.querySelectorAll('input[name="name"],input[name="tc"]').forEach(inp=>{
+            inp.addEventListener('input', ()=>{ debounceFetch(); });
         });
-        input.addEventListener('change', ()=> doSearch(input.value.trim()));
+        document.querySelectorAll('select[name="sort"],select[name="dir"],select[name="pageSize"]').forEach(sel=>{
+            sel.addEventListener('change', ()=> submitAjax(1));
+        });
+        tableBody.addEventListener('click', e=>{
+            const a = e.target.closest('a[data-page]'); if(!a) return; e.preventDefault(); const p = parseInt(a.dataset.page); if(!isNaN(p)) submitAjax(p);
+        });
+    }
 
-        async function doSearch(q){
-            lastQuery = q;
-            if(q.length>0 && (!/^\d+$/.test(q) || q.length<3)){
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">En az 3 haneli rakam girin</td></tr>';
-                return;
-            }
-            try {
-                const resp = await fetch(`/Patient/Search?query=${encodeURIComponent(q)}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }});
-                const json = await resp.json();
-                if(!json.success) return;
-                renderRows(json.data);
-            } catch(e){ console.error(e); }
+    function debounceFetch(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(()=> submitAjax(1), 350); }
+
+    function buildQuery(page){
+        const ps = getPageSize();
+        const sort = document.querySelector('select[name="sort"]').value;
+        const dir = document.querySelector('select[name="dir"]').value;
+        const name = document.querySelector('input[name="name"]').value.trim();
+        const tc = document.querySelector('input[name="tc"]').value.trim();
+    const qp = new URLSearchParams({ page: String(page), pageSize: ps, sort, dir });
+    if(name) qp.append('name', name);
+    if(tc) qp.append('tc', tc);
+        return qp.toString();
+    }
+
+    function getPageSize(){ return document.querySelector('select[name="pageSize"]').value; }
+
+    async function submitAjax(page){
+        currentPage = page;
+        const qs = buildQuery(page);
+        setLoading();
+        try{
+            const resp = await fetch('/Patient/ListData?'+qs, { headers:{'X-Requested-With':'XMLHttpRequest'} });
+            if(!resp.ok) throw new Error('İstek başarısız');
+            const data = await resp.json();
+            renderRows(data.items, data.page, data.totalPages, data.total);
+        }catch(err){
+            console.error(err);
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Yüklenemedi</td></tr>';
         }
+    }
 
-        function renderRows(list){
-            lastRenderedList = list||[];
-            const total = lastRenderedList.length;
-            const totalPages = Math.max(1, Math.ceil(total/patientPageSize));
-            if(patientCurrentPage>totalPages) patientCurrentPage = totalPages;
-            tableBody.innerHTML = '';
-            if(total===0){ tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Kayıt bulunamadı</td></tr>'; updatePatientPagination(0,0); return; }
-            const start = (patientCurrentPage-1)*patientPageSize;
-            const end = patientCurrentPage*patientPageSize;
-            lastRenderedList.slice(start,end).forEach(p=>{
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${escapeHtml(p.fullName|| (p.firstName+" "+p.lastName))}</strong></td>
-                    <td>${p.tcNo||''}</td>
-                    <td>${p.phoneNumber||''}</td>
-                    <td>${p.email||''}</td>
-                    <td>${calcAge(p.dateOfBirth)}</td>
-                    <td class='text-dark fw-semibold'>${p.bloodType||''}</td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <a href="/Patient/Details/${p.id}" class="btn btn-sm btn-info" title="Detaylar"><i class="fas fa-eye"></i></a>
-                            <a href="/Patient/Edit/${p.id}" class="btn btn-sm btn-warning" title="Düzenle"><i class="fas fa-edit"></i></a>
-                            <a href="/Patient/MedicalHistory/${p.id}" class="btn btn-sm btn-primary" title="Tıbbi Geçmiş"><i class="fas fa-file-medical"></i></a>
-                            <a href="/Patient/Delete/${p.id}" class="btn btn-sm btn-danger" title="Sil"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </td>`;
-                tableBody.appendChild(tr);
-            });
-            updatePatientPagination(totalPages,total);
+    function setLoading(){ tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Yükleniyor...</td></tr>'; }
+
+    function renderRows(items,page,totalPagesIn,total){
+        currentPage = page; totalPages = totalPagesIn;
+        if(!items || items.length===0){ tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Kayıt bulunamadı</td></tr>'; updateFooter(total); return; }
+        tableBody.innerHTML = items.map(p=> rowHtml(p)).join('');
+        updateFooter(total);
+    }
+
+    function rowHtml(p){
+        const age = p.age ?? '';
+        return `<tr>
+            <td><strong>${escapeHtml(p.fullName||'')}</strong></td>
+            <td>${escapeHtml(p.tc||'')}</td>
+            <td>${escapeHtml(p.phone||'')}</td>
+            <td>${escapeHtml(p.email||'')}</td>
+            <td class='text-center'>${age}</td>
+            <td>${escapeHtml(p.bloodType||'')}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <a class="btn btn-outline-info" href="/Patient/Details/${p.id}"><i class="fas fa-eye"></i></a>
+                    <a class="btn btn-outline-warning" href="/Patient/Edit/${p.id}"><i class="fas fa-edit"></i></a>
+                    <a class="btn btn-outline-primary" href="/Patient/MedicalHistory/${p.id}"><i class="fas fa-file-medical"></i></a>
+                    <a class="btn btn-outline-danger" href="/Patient/Delete/${p.id}"><i class="fas fa-trash"></i></a>
+                </div>
+            </td>
+        </tr>`;
+    }
+
+    function updateFooter(total){
+        const ps = parseInt(getPageSize());
+        totalPages = Math.max(1, Math.ceil(total / ps));
+        const pageInfo = document.getElementById('pageInfo');
+        const rangeInfo = document.getElementById('rangeInfo');
+        if(pageInfo) pageInfo.textContent = `Sayfa ${currentPage} / ${totalPages}`;
+        const start = total===0? 0 : (currentPage-1)*ps + 1;
+        const end = Math.min(currentPage*ps, total);
+        if(rangeInfo) rangeInfo.textContent = `${total===0?0:`${start}-${end}` } / ${total}`;
+        const nav = document.getElementById('paginationNav');
+        if(!nav) return;
+        // Sayfa aralığı hesapla (maks 5 buton)
+        let first = Math.max(1, currentPage - 2);
+        let last = Math.min(totalPages, first + 4);
+        if(last - first < 4) first = Math.max(1, last - 4);
+        const items = [];
+        const disabledPrev = currentPage===1 ? ' disabled' : '';
+        const disabledNext = currentPage===totalPages ? ' disabled' : '';
+        items.push(`<ul class="pagination pagination-sm mb-0">`);
+        items.push(`<li class="page-item${disabledPrev}"><a class="page-link" href="#" data-page="1" aria-label="İlk">«</a></li>`);
+        items.push(`<li class="page-item${disabledPrev}"><a class="page-link" href="#" data-page="${currentPage-1}">Önceki</a></li>`);
+        for(let p=first;p<=last;p++){
+            items.push(`<li class="page-item ${p===currentPage?'active':''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`);
         }
+        items.push(`<li class="page-item${disabledNext}"><a class="page-link" href="#" data-page="${currentPage+1}">Sonraki</a></li>`);
+        items.push(`<li class="page-item${disabledNext}"><a class="page-link" href="#" data-page="${totalPages}" aria-label="Son">»</a></li>`);
+        items.push(`</ul>`);
+        nav.innerHTML = items.join('');
+        nav.querySelectorAll('a[data-page]').forEach(a=>{
+            a.addEventListener('click', e=>{ e.preventDefault(); const p = parseInt(a.dataset.page); if(!isNaN(p) && p>=1 && p<=totalPages && p!==currentPage){ submitAjax(p); } });
+        });
+    }
 
-        function updatePatientPagination(pages,total){
-            const pagUl = document.getElementById('patientPagination');
-            const info = document.getElementById('patientPageInfo');
-            if(!pagUl) return;
-            pagUl.innerHTML='';
-            if(pages>1){
-                const mk=(p,txt,dis,act)=>`<li class="page-item ${dis?'disabled':''} ${act?'active':''}"><a href="#" class="page-link" data-page="${p}">${txt}</a></li>`;
-                pagUl.innerHTML += mk(patientCurrentPage-1,'«',patientCurrentPage===1,false);
-                let start = Math.max(1,patientCurrentPage-2); let end = Math.min(pages,start+4); if(end-start<4) start=Math.max(1,end-4);
-                for(let p=start;p<=end;p++){ pagUl.innerHTML += mk(p,p,false,p===patientCurrentPage); }
-                pagUl.innerHTML += mk(patientCurrentPage+1,'»',patientCurrentPage===pages,false);
-            }
-            const startRecord = total?((patientCurrentPage-1)*patientPageSize+1):0;
-            const endRecord = Math.min(patientCurrentPage*patientPageSize,total);
-            info.textContent = `${startRecord}-${endRecord} / ${total}`;
-            pagUl.addEventListener('click',function(e){
-                const a=e.target.closest('a[data-page]'); if(!a) return; e.preventDefault(); const p=parseInt(a.dataset.page); if(!isNaN(p)){patientCurrentPage=Math.max(1,p); renderRows(lastRenderedList);} },{ once:true });
+    document.addEventListener('keydown', e=>{
+        if(e.target.matches('input[name="tc"]')){
+            if(!/\d|Backspace|Tab|ArrowLeft|ArrowRight|Delete/.test(e.key)) e.preventDefault();
         }
+    });
 
-        function calcAge(d){ if(!d) return ''; const date = new Date(d); if(isNaN(date)) return ''; const now=new Date(); let age=now.getFullYear()-date.getFullYear(); const m=now.getMonth()-date.getMonth(); if(m<0 || (m===0 && now.getDate()<date.getDate())) age--; return age; }
-        function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>"] /g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',' ':' '})[c]); }
+    function escapeHtml(str){ return (str||'').replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+
+    // --- Sabit Filtre Paneli (Desktop) ---
+    let filterAside, filterPlaceholder; let filterFixed = false; let filterOriginalWidth = 0;
+
+    function initFixedFilter(){
+        filterAside = document.querySelector('.patient-filters');
+        if(!filterAside) return;
+        filterPlaceholder = document.createElement('div');
+        filterPlaceholder.style.width = getComputedStyle(filterAside).width;
+        filterPlaceholder.style.flex = '0 0 '+getComputedStyle(filterAside).width;
+        window.addEventListener('resize', debounceHandleResize, { passive:true });
+        window.addEventListener('scroll', onScrollFixed, { passive:true });
+        activateFixedIfNeeded();
+    }
+
+    function debounceHandleResize(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(()=>{ deactivateFixed(); activateFixedIfNeeded(); }, 200); }
+
+    function activateFixedIfNeeded(){
+        const vw = window.innerWidth; if(vw < 992){ deactivateFixed(); return; }
+        if(filterFixed) { positionFilter(); return; }
+        // Yükseklik çok büyükse yine de sabitleriz; iç scroll olacak.
+        filterOriginalWidth = filterAside.getBoundingClientRect().width;
+        filterPlaceholder.style.height = filterAside.offsetHeight + 'px';
+        filterAside.parentNode.insertBefore(filterPlaceholder, filterAside);
+        filterAside.classList.add('pf-fixed');
+        filterAside.style.width = filterOriginalWidth+'px';
+        positionFilter();
+        filterFixed = true;
+    }
+
+    function deactivateFixed(){
+        if(!filterFixed) return;
+        filterAside.classList.remove('pf-fixed');
+        filterAside.style.width=''; filterAside.style.left=''; filterAside.style.top=''; filterAside.style.height='';
+        if(filterPlaceholder && filterPlaceholder.parentNode){ filterPlaceholder.parentNode.removeChild(filterPlaceholder); }
+        filterFixed = false;
+    }
+
+    function positionFilter(){
+        if(!filterFixed) return; const rect = filterPlaceholder.getBoundingClientRect();
+        filterAside.style.left = rect.left + 'px';
+        const topOffset = 80; // Navbar yüksekliği varsayım
+        const h = window.innerHeight - (topOffset + 20);
+        filterAside.style.top = topOffset + 'px';
+        filterAside.style.height = h + 'px';
+    }
+
+    function onScrollFixed(){ positionFilter(); }
     </script>
+    <style>
+        .patient-layout{display:flex; gap:1.25rem; align-items:flex-start;}
+        .patient-filters{width:280px; flex:0 0 280px;}
+        .patient-list{flex:1 1 auto; min-width:0;}
+    .enb-filter-card { background: var(--enb-surface,#f7f9fc); border:1px solid rgba(0,0,0,.05); border-radius:16px; padding:1rem 1rem 1.25rem; }
+    .pf-fixed{ position:fixed; z-index:1020; }
+    .pf-fixed .enb-filter-card{ height:100%; overflow:auto; padding-bottom:1.5rem; }
+        .enb-filter-header { display:flex; align-items:center; gap:.5rem; font-weight:600; margin-bottom:.75rem; }
+        .enb-filter-icon { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; background:var(--enb-primary,#1e4fa1); color:#fff; font-size:.95rem; }
+        .enb-filter-body .form-label { margin-bottom:.25rem; letter-spacing:.5px; }
+        .enb-filter-card .input-group-text{ background:#fff; }
+        .enb-filter-card select.form-select-sm, .enb-filter-card input.form-control{ font-size:.78rem; }
+        .enb-filter-card .btn{ font-size:.75rem; letter-spacing:.3px; }
+        .enb-filter-card .btn-outline-secondary{background:#fff;}
+        .enb-filter-card .btn-primary{background:var(--enb-primary,#1e4fa1);border-color:var(--enb-primary,#1e4fa1);}        
+        .enb-filter-card .btn-primary:hover{filter:brightness(.95);}    
+        .patient-list .card{border:none; box-shadow:0 0.125rem 0.35rem rgba(0,0,0,.08);}    
+        .patient-list thead th{font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
+        .patient-list tbody td{vertical-align:middle;}
+        .patient-list .badge{font-size:.65rem;}
+        .card-footer nav .pagination .page-link{font-size:.7rem;}
+        @@media (max-width: 991.98px){
+            .patient-layout{flex-direction:column;}
+            .patient-filters{width:100%;}
+            .enb-filter-card{position:static; top:auto;}
+        }
+    </style>
 }

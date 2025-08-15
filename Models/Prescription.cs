@@ -56,7 +56,7 @@ namespace HospitalManagementSystem.Models
 
         public DateTime? UpdatedAt { get; set; }
 
-        public bool IsActive => Status == PrescriptionStatus.Active;
+    // IsActive kaldırıldı (gerektiğinde Status == Active kontrolü direkt yapılacak)
 
         public bool IsExpired => EndDate.HasValue && EndDate.Value < DateTime.UtcNow;
     }

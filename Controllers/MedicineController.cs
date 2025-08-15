@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using HospitalManagementSystem.Models;
+using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Services;
 using HospitalManagementSystem.Attributes;
 
@@ -49,19 +49,16 @@ namespace HospitalManagementSystem.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AuthorizeRole("Admin", "Doctor")]
-        public async Task<IActionResult> Create(Medicine medicine)
+        public async Task<IActionResult> Create(CreateMedicineDto createMedicineDto)
         {
             if (ModelState.IsValid)
             {
-                medicine.Id = null; // MongoDB otomatik ID oluşturacak
-                medicine.CreatedAt = DateTime.UtcNow;
-
-                await _medicineService.CreateMedicineAsync(medicine);
+                await _medicineService.CreateMedicineAsync(createMedicineDto);
                 TempData["SuccessMessage"] = "İlaç başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(medicine);
+            return View(createMedicineDto);
         }
 
         // İlaç düzenleme formu (Admin, Doctor)
@@ -86,21 +83,16 @@ namespace HospitalManagementSystem.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AuthorizeRole("Admin", "Doctor")]
-        public async Task<IActionResult> Edit(string id, Medicine medicine)
+        public async Task<IActionResult> Edit(string id, UpdateMedicineDto updateMedicineDto)
         {
-            if (id != medicine.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                await _medicineService.UpdateMedicineAsync(id, medicine);
+                await _medicineService.UpdateMedicineAsync(id, updateMedicineDto);
                 TempData["SuccessMessage"] = "İlaç başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(medicine);
+            return View(updateMedicineDto);
         }
 
         // İlaç silme (Sadece Admin)

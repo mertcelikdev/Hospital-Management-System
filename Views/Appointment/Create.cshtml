@@ -1,4 +1,4 @@
-@model Appointment
+@model HospitalManagementSystem.DTOs.CreateAppointmentDto
 
 @{
     ViewData["Title"] = "Yeni Randevu Oluştur";
@@ -47,30 +47,52 @@
                                     </h6>
                                     
                                     <div class="mb-3">
-                                        <label asp-for="PatientId" class="form-label fw-semibold">Hasta *</label>
+                                        <label class="form-label fw-semibold">Hasta (TC ile) *</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                            <select asp-for="PatientId" class="form-select" id="PatientId">
-                                                <option value="">Hasta seçiniz</option>
-                                                @foreach (var patient in ViewBag.Patients as List<User>)
-                                                {
-                                                    <option value="@patient.Id">@patient.Name - @patient.Email</option>
+                                            <div class="w-100">
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">TC</span>
+                                                    <input type="text" class="form-control" id="TcLookup" maxlength="11" placeholder="TC Kimlik No girin..." />
+                                                    <button class="btn btn-outline-secondary" type="button" id="TcClearBtn" style="display:none">Temizle</button>
+                                                </div>
+                                                <select asp-for="PatientId" class="form-select d-none" id="PatientId">
+                                                    <option value=""></option>
+                                                </select>
+                                                <div class="small text-muted mt-1" id="TcStatus"></div>
+                                                <div class="border rounded p-2 mt-2 d-none" id="PatientInfoCard">
+                                                    <div class="fw-semibold" id="PatientFullName"></div>
+                                                    <div class="text-muted small" id="PatientTc"></div>
+                                                    <div class="small" id="PatientPhone"></div>
+                                                    <div class="small" id="PatientEmail"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Departman *</label>
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                            <select class="form-select" id="DepartmentId" name="DepartmentId" required>
+                                                <option value="">Departman seçiniz</option>
+                                                @if(ViewBag.Departments is List<HospitalManagementSystem.DTOs.DepartmentDto> depDtos && depDtos.Any()){
+                                                    foreach(var d in depDtos){ <option value="@d.Id">@d.Name</option>; }
+                                                } else {
+                                                    <option disabled value="">(Departman bulunamadı)</option>
                                                 }
                                             </select>
                                         </div>
-                                        <span asp-validation-for="PatientId" class="text-danger"></span>
+                                        <span class="text-danger" data-valmsg-for="DepartmentId" data-valmsg-replace="true"></span>
                                     </div>
 
                                     <div class="mb-3">
                                         <label asp-for="DoctorId" class="form-label fw-semibold">Doktor *</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user-md"></i></span>
-                                            <select asp-for="DoctorId" class="form-select" id="DoctorId">
-                                                <option value="">Doktor seçiniz</option>
-                                                @foreach (var doctor in ViewBag.Doctors as List<User>)
-                                                {
-                                                    <option value="@doctor.Id">Dr. @doctor.Name</option>
-                                                }
+                                            <select asp-for="DoctorId" class="form-select" id="DoctorId" disabled>
+                                                <option value="">Önce departman seçiniz</option>
                                             </select>
                                         </div>
                                         <span asp-validation-for="DoctorId" class="text-danger"></span>
@@ -97,26 +119,22 @@
                                     </h6>
 
                                     <div class="mb-3">
-                                        <label asp-for="AppointmentDate" class="form-label fw-semibold">Randevu Tarihi ve Saati *</label>
+                                        <label class="form-label fw-semibold">Randevu Tarihi *</label>
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
+                                            <input type="date" id="AppointmentDateOnly" class="form-control" required />
+                                        </div>
+                                        <label class="form-label fw-semibold mt-2">Randevu Saati *</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                            <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
-                                        </div>
-                                        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                                        <div class="form-text">
-                                            <i class="fas fa-info-circle"></i> Lütfen uygun bir tarih ve saat seçiniz
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label asp-for="Status" class="form-label fw-semibold">Durum</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="fas fa-flag"></i></span>
-                                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentStatus>()">
-                                                <option value="">Durum seçiniz</option>
+                                            <select id="AppointmentTimeSlot" class="form-select" required>
+                                                <option value="">Saat seçiniz</option>
                                             </select>
                                         </div>
-                                        <span asp-validation-for="Status" class="text-danger"></span>
+                                        <small class="text-muted">Çalışma saatleri 09:00 - 17:00 (30 dk aralıklar). İstisnai durum için 'Diğer' seçebilirsiniz.</small>
+                                        <input type="hidden" asp-for="AppointmentDate" id="AppointmentDate" />
+                                        <input type="hidden" name="AppointmentTime" id="AppointmentTime" />
+                                        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
                                     </div>
 
                                     <div class="mb-3">
@@ -184,41 +202,254 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default status to Scheduled
-            document.getElementById('Status').value = 'Scheduled';
-            
-            // Set minimum date to today
-            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
-            const now = new Date();
-            const minDateTime = now.toISOString().slice(0, 16);
-            appointmentDateInput.min = minDateTime;
+            // Tarihi ayarla ve min değer ver
+            const dateInput = document.getElementById('AppointmentDateOnly');
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth()+1).padStart(2,'0');
+            const dd = String(today.getDate()).padStart(2,'0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+            dateInput.min = todayStr;
+            if(!dateInput.value) dateInput.value = todayStr;
+
+            initStaticOtherOption();
+
+            // Doktor seçiliyse slotları yükle
+            if(document.getElementById('DoctorId').value){
+                loadTimeSlots();
+            }
         });
 
+        function initStaticOtherOption(){
+            const slotSelect = document.getElementById('AppointmentTimeSlot');
+            slotSelect.innerHTML = '<option value="">Saat seçiniz</option>';
+            const otherOpt = document.createElement('option');
+            otherOpt.value = 'OTHER';
+            otherOpt.textContent = 'Diğer (manuel gireceğim)';
+            slotSelect.appendChild(otherOpt);
+        }
+
+        async function loadTimeSlots(){
+            const doctorId = document.getElementById('DoctorId').value;
+            const dateVal = document.getElementById('AppointmentDateOnly').value;
+            const slotSelect = document.getElementById('AppointmentTimeSlot');
+            const warning = document.getElementById('TimeSlotWarning');
+            warning && (warning.innerHTML='');
+            if(!doctorId || !dateVal){ initStaticOtherOption(); return; }
+            slotSelect.disabled = true;
+            slotSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            try{
+                const resp = await fetch(`/Appointment/TimeSlots?doctorId=${doctorId}&date=${dateVal}`);
+                const json = await resp.json();
+                slotSelect.innerHTML = '<option value="">Saat seçiniz</option>';
+                let allFull = true;
+                let data = [];
+                if(json.success && Array.isArray(json.data) && json.data.length){
+                    data = json.data;
+                } else if(json.success){
+                    // Backend boş döndüyse (teknik bir durum) tüm slotları available varsay
+                    for(let h=9; h<17; h++){
+                        for(let m of [0,30]){
+                            const t = `${String(h).padStart(2,'0')}:${m===0?'00':'30'}`;
+                            data.push({ time: t, available: true });
+                        }
+                    }
+                } else {
+                    throw new Error(json.message || 'Slotlar getirilemedi');
+                }
+                data.forEach(s=>{
+                    const opt = document.createElement('option');
+                    opt.value = s.time;
+                    opt.textContent = s.time + (s.available ? '' : ' (DOLU)');
+                    if(!s.available){ opt.disabled = true; opt.classList.add('text-danger'); }
+                    else allFull = false;
+                    slotSelect.appendChild(opt);
+                });
+                const otherOpt = document.createElement('option');
+                otherOpt.value = 'OTHER';
+                otherOpt.textContent = 'Diğer (manuel gireceğim)';
+                slotSelect.appendChild(otherOpt);
+                if(allFull){
+                    if(!warning){
+                        const small = document.createElement('div');
+                        small.id='TimeSlotWarning';
+                        small.className='text-danger mt-1 small';
+                        small.innerHTML='Seçilen gün için tüm slotlar dolu. Diğer seçeneği ile istisnai saat belirleyebilirsiniz.';
+                        slotSelect.parentElement.appendChild(small);
+                    } else {
+                        warning.innerHTML='Seçilen gün için tüm slotlar dolu. Diğer seçeneği ile istisnai saat belirleyebilirsiniz.';
+                    }
+                }
+            }catch(e){
+                initStaticOtherOption();
+                if(!document.getElementById('TimeSlotWarning')){
+                    const small = document.createElement('div');
+                    small.id='TimeSlotWarning';
+                    small.className='text-danger mt-1 small';
+                    small.innerText = 'Slot yükleme hatası: '+ e.message;
+                    document.getElementById('AppointmentTimeSlot').parentElement.appendChild(small);
+                }
+            }
+            finally{ slotSelect.disabled = false; }
+        }
+
+        document.getElementById('DoctorId')?.addEventListener('change', loadTimeSlots);
+        document.getElementById('DepartmentId')?.addEventListener('change', async function(){
+            const depId = this.value;
+            const doctorSelect = document.getElementById('DoctorId');
+            doctorSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            doctorSelect.disabled = true;
+            if(!depId){ doctorSelect.innerHTML='<option value="">Önce departman seçiniz</option>'; doctorSelect.disabled=true; return; }
+            try{
+                const resp = await fetch(`/Department/Doctors?departmentId=${depId}`);
+                const json = await resp.json();
+                doctorSelect.innerHTML = '<option value="">Doktor seçiniz</option>';
+                if(json.success){
+                    const arr = Array.isArray(json.data)? json.data : [];
+                    arr.forEach(d=>{
+                        const opt=document.createElement('option');
+                        opt.value=d.id; opt.textContent='Dr. '+d.name; doctorSelect.appendChild(opt);
+                    });
+                    doctorSelect.disabled = arr.length === 0;
+                    if(arr.length === 0){ doctorSelect.innerHTML='<option value="">Bu departmanda doktor yok</option>';
+                    }
+                } else {
+                    doctorSelect.innerHTML='<option value="">Hata: '+ (json.message||'Doktorlar alınamadı') +'</option>';
+                }
+            }catch(err){ doctorSelect.innerHTML='<option value="">Sunucu hatası</option>'; }
+        });
+        document.getElementById('AppointmentDateOnly')?.addEventListener('change', loadTimeSlots);
+
         function setQuickAppointment(type) {
-            const appointmentDateInput = document.querySelector('input[name="AppointmentDate"]');
+            const dateInput = document.getElementById('AppointmentDateOnly');
+            const timeSelect = document.getElementById('AppointmentTimeSlot');
             const now = new Date();
-            
-            switch(type) {
+            switch(type){
                 case 'today':
-                    now.setHours(now.getHours() + 2); // 2 saat sonra
+                    if(now.getHours() < 9) { now.setHours(9,0,0,0); }
+                    else { now.setMinutes(now.getMinutes()+30); }
                     break;
                 case 'tomorrow':
-                    now.setDate(now.getDate() + 1);
-                    now.setHours(9, 0, 0, 0); // Yarın saat 9:00
-                    break;
+                    now.setDate(now.getDate()+1); now.setHours(9,0,0,0); break;
                 case 'nextweek':
-                    now.setDate(now.getDate() + 7);
-                    now.setHours(9, 0, 0, 0); // Gelecek hafta saat 9:00
-                    break;
+                    now.setDate(now.getDate()+7); now.setHours(9,0,0,0); break;
                 case 'emergency':
-                    now.setMinutes(now.getMinutes() + 30); // 30 dakika sonra
-                    document.getElementById('Type').value = 'Emergency';
-                    document.getElementById('Status').value = 'Confirmed';
-                    break;
+                    now.setMinutes(now.getMinutes()+30); document.getElementById('Type').value='Emergency'; break;
             }
-            
-            appointmentDateInput.value = now.toISOString().slice(0, 16);
+            dateInput.value = now.toISOString().slice(0,10);
+            const slot = `${String(now.getHours()).padStart(2,'0')}:${now.getMinutes()<30?'00':'30'}`;
+            if([...timeSelect.options].some(o=>o.value===slot)) timeSelect.value=slot; else timeSelect.value='OTHER';
         }
+
+        // TC ile hasta arama
+        const tcInput = document.getElementById('TcLookup');
+        const tcStatus = document.getElementById('TcStatus');
+        const patientSelect = document.getElementById('PatientId');
+        const infoCard = document.getElementById('PatientInfoCard');
+        const clearBtn = document.getElementById('TcClearBtn');
+        const nameEl = document.getElementById('PatientFullName');
+        const tcEl = document.getElementById('PatientTc');
+        const phoneEl = document.getElementById('PatientPhone');
+        const emailEl = document.getElementById('PatientEmail');
+
+        function resetPatientUi(msg){
+            infoCard.classList.add('d-none');
+            nameEl.textContent = '';
+            tcEl.textContent = '';
+            phoneEl.textContent='';
+            emailEl.textContent='';
+            if(msg) tcStatus.innerHTML = `<span class='text-muted'>${msg}</span>`; else tcStatus.textContent='';
+        }
+
+        async function lookupTc(tc){
+            if(!/^\d{11}$/.test(tc)) { resetPatientUi('11 haneli TC giriniz'); return; }
+            tcStatus.innerHTML = "<span class='text-info'>Sorgulanıyor...</span>";
+            try {
+                const resp = await fetch(`/Patient/FindByTc?tc=${tc}`, { headers: { 'X-Requested-With':'XMLHttpRequest' }});
+                const json = await resp.json();
+                if(!json.success){
+                    resetPatientUi(json.message || 'Hasta bulunamadı');
+                    showPatientNotFound();
+                    patientSelect.value='';
+                    return;
+                }
+                const p = json.data;
+                if(![...patientSelect.options].some(o=>o.value===p.id)){
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.fullName} - ${p.email || ''}`;
+                    patientSelect.appendChild(opt);
+                }
+                patientSelect.value = p.id;
+                nameEl.textContent = p.fullName;
+                tcEl.textContent = `TC: ${p.tcNo}`;
+                phoneEl.textContent = p.phoneNumber ? `Tel: ${p.phoneNumber}`: '';
+                emailEl.textContent = p.email ? `E-posta: ${p.email}`: '';
+                infoCard.classList.remove('d-none');
+                tcStatus.innerHTML = "<span class='text-success'>Hasta bulundu</span>";
+                clearBtn.style.display='inline-block';
+            } catch(e){
+                resetPatientUi('Hata: '+ e.message);
+            }
+        }
+
+        tcInput?.addEventListener('input', e=>{
+            const v = e.target.value.replace(/[^0-9]/g,'');
+            if(v!==e.target.value) e.target.value=v;
+            if(v.length === 0){ resetPatientUi(); clearBtn.style.display='none'; return; }
+            clearBtn.style.display='inline-block';
+            if(v.length < 11){
+                resetPatientUi(`Eksik TC (${v.length}/11)`);
+                return;
+            }
+            if(v.length === 11){ lookupTc(v); }
+            if(v.length > 11){ e.target.value = v.slice(0,11); }
+        });
+
+        // Form submit öncesi TC, hasta ve tarih-saat birleştirme
+        document.getElementById('appointmentForm').addEventListener('submit', function(e){
+            const tc = tcInput.value.trim();
+            const dateVal = document.getElementById('AppointmentDateOnly').value;
+            const timeVal = document.getElementById('AppointmentTimeSlot').value;
+            if(!/^\d{11}$/.test(tc) || !patientSelect.value){
+                e.preventDefault();
+                tcStatus.innerHTML = "<span class='text-danger'>Önce geçerli 11 haneli TC ile hasta doğrulayın. Hasta yoksa önce hasta kaydı oluşturulmalı.</span>";
+                tcInput.focus();
+                return;
+            }
+            if(!dateVal || !timeVal){
+                e.preventDefault();
+                alert('Tarih ve saat seçiniz');
+                return;
+            }
+            let finalDateTime;
+            let chosenTime;
+            if(timeVal === 'OTHER'){
+                const manual = prompt('Özel saat (HH:MM, 24 saat formatı):');
+                if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(manual||'')) { e.preventDefault(); alert('Geçersiz saat formatı'); return; }
+                chosenTime = manual;
+                finalDateTime = `${dateVal}T${manual}:00`;
+            } else {
+                chosenTime = timeVal;
+                finalDateTime = `${dateVal}T${timeVal}:00`;
+            }
+            document.getElementById('AppointmentDate').value = finalDateTime;
+            document.getElementById('AppointmentTime').value = chosenTime+':00'; // HH:mm:00 formatı
+        });
+
+        // Hasta bulunamadığında özel uyarı ekle
+        function showPatientNotFound(){
+            tcStatus.innerHTML = "<span class='text-danger'>Bu TC ile hasta kaydı yok. Önce hasta kaydı oluşturulmalı.</span>";
+        }
+
+        // lookupTc içinde başarısız senaryoda bu fonksiyonu çağırmak için patch
+
+        clearBtn.addEventListener('click', ()=>{
+            tcInput.value='';
+            patientSelect.value='';
+            resetPatientUi();
+            clearBtn.style.display='none';
+        });
     </script>
 
     <style>

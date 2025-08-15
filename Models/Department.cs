@@ -40,9 +40,6 @@ namespace HospitalManagementSystem.Models
         [Display(Name = "Konum")]
         public string? Location { get; set; }
 
-        [Display(Name = "Aktif")]
-        public bool IsActive { get; set; } = true;
-
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

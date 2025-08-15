@@ -31,7 +31,6 @@ namespace HospitalManagementSystem.DTOs
         public string? Specialization { get; set; }
         public string? LicenseNumber { get; set; }
         public string? DepartmentId { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 
     public class EditPatientDto
@@ -58,7 +57,6 @@ namespace HospitalManagementSystem.DTOs
         public string? ChronicConditions { get; set; }
         public string? InsuranceNumber { get; set; }
         public string? InsuranceProvider { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 
     public class EditDoctorDto
@@ -95,7 +93,6 @@ namespace HospitalManagementSystem.DTOs
         [Required(ErrorMessage = "Departman seçimi gereklidir")]
         public string DepartmentId { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; } = true;
     }
 
     public class EditNurseDto
@@ -128,7 +125,6 @@ namespace HospitalManagementSystem.DTOs
         [Required(ErrorMessage = "Departman seçimi gereklidir")]
         public string DepartmentId { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; } = true;
     }
 
     public class ChangeUserPasswordDto
@@ -146,7 +142,6 @@ namespace HospitalManagementSystem.DTOs
 
     public class ToggleUserStatusDto
     {
-        public bool IsActive { get; set; }
         public string? Reason { get; set; }
     }
 }

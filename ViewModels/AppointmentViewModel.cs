@@ -5,6 +5,7 @@ namespace HospitalManagementSystem.ViewModels
         public string Id { get; set; } = string.Empty;
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
+        public string PatientTc { get; set; } = string.Empty;
         public string DoctorId { get; set; } = string.Empty;
         public string DoctorName { get; set; } = string.Empty;
         public DateTime AppointmentDate { get; set; }
@@ -13,5 +14,8 @@ namespace HospitalManagementSystem.ViewModels
         public string Notes { get; set; } = string.Empty;
         public string Department { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public string? CreatedByName { get; set; }
+        public string? DeletedByName { get; set; }
     }
 }

@@ -1,0 +1,24 @@
+@model HospitalManagementSystem.DTOs.PatientDto
+@{
+	ViewData["Title"] = "Hasta Sil";
+}
+<div class="container mt-4">
+	<h2>Hasta Sil</h2>
+	<div class="alert alert-warning mt-3">
+		Bu işlem hastayı YUMUŞAK şekilde silecek (geri alınabilir). Emin misiniz?
+	</div>
+	<dl class="row">
+		<dt class="col-sm-3">Ad Soyad</dt>
+		<dd class="col-sm-9">@Model.FullName</dd>
+		<dt class="col-sm-3">TC Kimlik No</dt>
+		<dd class="col-sm-9">@Model.TcNo</dd>
+		<dt class="col-sm-3">Telefon</dt>
+		<dd class="col-sm-9">@Model.PhoneNumber</dd>
+	</dl>
+	<form asp-action="Delete" method="post">
+		@Html.AntiForgeryToken()
+		<input type="hidden" asp-for="Id" />
+		<button type="submit" class="btn btn-danger">Sil</button>
+		<a asp-action="Index" class="btn btn-secondary">İptal</a>
+	</form>
+</div>

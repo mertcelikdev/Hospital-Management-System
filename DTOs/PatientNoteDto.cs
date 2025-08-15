@@ -44,19 +44,4 @@ namespace HospitalManagementSystem.DTOs
         public DateTime? FollowUpDate { get; set; }
         public bool IsFollowUpCompleted { get; set; }
     }
-
-    public class PatientNoteSearchDto
-    {
-        public string? PatientId { get; set; }
-        public string? Category { get; set; }
-        public bool? IsUrgent { get; set; }
-        public string? CreatedBy { get; set; }
-        public DateTime? FromDate { get; set; }
-        public DateTime? ToDate { get; set; }
-        public string? SearchTerm { get; set; }
-        public bool? HasFollowUp { get; set; }
-        public bool? IsFollowUpCompleted { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
 }

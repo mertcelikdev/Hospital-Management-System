@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagementSystem.Models;
+using System.Diagnostics;
 
 namespace HospitalManagementSystem.Controllers
 {
@@ -7,8 +8,8 @@ namespace HospitalManagementSystem.Controllers
     {
         public IActionResult Index()
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
             if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(userRole))
             {

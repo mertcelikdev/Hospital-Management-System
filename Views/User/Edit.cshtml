@@ -13,22 +13,8 @@
                     <h2 class="mb-1">
                         <i class="fas fa-user-edit text-primary"></i>
                         Kullanıcı Düzenle
-                    </h2>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "User")">Kullanıcılar</a></li>
-                            <li class="breadcrumb-item active">Düzenle</li>
-                        </ol>
-                    </nav>
-                </div>
-                <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Geri Dön
-                </a>
-            </div>
-
-            <!-- Edit Form -->
-            <div class="card shadow-sm">
+                                    <!-- Rol seçimi kaldırıldı -->
+                                    <!-- Departman seçimi kaldırıldı -->
                 <div class="card-header bg-gradient-primary text-white">
                     <div class="d-flex align-items-center">
                         <div class="avatar-circle me-3">
@@ -148,11 +134,7 @@
                                     </div>
 
                                     <div class="form-check">
-                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                        <label asp-for="IsActive" class="form-check-label fw-semibold">
-                                            Aktif Kullanıcı
-                                        </label>
-                                    </div>
+                                            <!-- IsActive alanı kaldırıldı -->
                                 </div>
                             </div>
                         </div>

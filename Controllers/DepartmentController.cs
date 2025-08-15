@@ -2,17 +2,36 @@ using Microsoft.AspNetCore.Mvc;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Services;
 using HospitalManagementSystem.Attributes;
+using HospitalManagementSystem.DTOs;
 
 namespace HospitalManagementSystem.Controllers
 {
-    [AuthorizeRole("Admin")]
+    [AuthorizeRole("Admin","Doctor","Staff")]
     public class DepartmentController : Controller
     {
         private readonly IDepartmentService _departmentService;
+        private readonly IUserService _userService;
 
-        public DepartmentController(IDepartmentService departmentService)
+        public DepartmentController(IDepartmentService departmentService, IUserService userService)
         {
             _departmentService = departmentService;
+            _userService = userService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Doctors(string departmentId)
+        {
+            if(string.IsNullOrWhiteSpace(departmentId)) return Json(new { success = false, message = "departmentId gerekli" });
+            try
+            {
+                var doctors = await _departmentService.GetDepartmentUsersAsync(departmentId, "Doctor");
+                var data = doctors.Select(u => new { id = u.Id, name = u.Name, role = u.Role });
+                return Json(new { success = true, data });
+            }
+            catch(Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         // Departman listesi
@@ -48,15 +67,11 @@ namespace HospitalManagementSystem.Controllers
         // Yeni departman oluşturma POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Department department)
+    public async Task<IActionResult> Create(CreateDepartmentDto department)
         {
             if (ModelState.IsValid)
             {
-                department.Id = null; // MongoDB otomatik ID oluşturacak
-                department.CreatedAt = DateTime.UtcNow;
-                department.IsActive = true;
-
-                await _departmentService.CreateDepartmentAsync(department);
+        await _departmentService.CreateDepartmentAsync(department);
                 TempData["SuccessMessage"] = "Departman başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index));
             }
@@ -84,16 +99,11 @@ namespace HospitalManagementSystem.Controllers
         // Departman düzenleme POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, Department department)
+    public async Task<IActionResult> Edit(string id, UpdateDepartmentDto department)
         {
-            if (id != department.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                await _departmentService.UpdateDepartmentAsync(id, department);
+        await _departmentService.UpdateDepartmentAsync(id, department);
                 TempData["SuccessMessage"] = "Departman başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index));
             }
@@ -116,24 +126,6 @@ namespace HospitalManagementSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Departman durumu değiştirme (Aktif/Pasif)
-        [HttpPost]
-        public async Task<IActionResult> ToggleStatus(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return Json(new { success = false, message = "Geçersiz departman ID" });
-            }
-
-            try
-            {
-                await _departmentService.ToggleDepartmentStatusAsync(id);
-                return Json(new { success = true, message = "Departman durumu güncellendi" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
+    // IsActive / durum yönetimi kaldırıldığı için ToggleStatus aksiyonu silindi
     }
 }

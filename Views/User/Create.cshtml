@@ -66,30 +66,7 @@
                                     <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="Role" class="form-label">Rol</label>
-                                    <select asp-for="Role" class="form-select" required>
-                                        <option value="">Rol seçiniz</option>
-                                        <option value="@UserRole.Doctor">
-                                            <i class="fas fa-user-md"></i> Doktor
-                                        </option>
-                                        <option value="@UserRole.Patient">
-                                            <i class="fas fa-procedures"></i> Hasta
-                                        </option>
-                                        <option value="@UserRole.Nurse">
-                                            <i class="fas fa-user-nurse"></i> Hemşire
-                                        </option>
-                                        <option value="@UserRole.Staff">
-                                            <i class="fas fa-users"></i> Personel
-                                        </option>
-                                        <option value="@UserRole.Admin">
-                                            <i class="fas fa-user-shield"></i> Admin
-                                        </option>
-                                    </select>
-                                    <span asp-validation-for="Role" class="text-danger"></span>
-                                </div>
-                            </div>
+                            <!-- Rol seçimi kaldırıldı: backend otomatik atayacak -->
                         </div>
 
                         <!-- Contact Information -->
@@ -156,17 +133,7 @@
                             </div>
                         </div>
 
-                        <!-- Status -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
-                                    <label asp-for="IsActive" class="form-check-label">
-                                        Aktif kullanıcı
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- IsActive ve Status bölümü kaldırıldı -->
 
                         <!-- Action Buttons -->
                         <div class="row">

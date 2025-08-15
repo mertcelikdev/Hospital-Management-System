@@ -1,4 +1,4 @@
-@model Appointment
+@model HospitalManagementSystem.DTOs.UpdateAppointmentDto
 
 @{
     ViewData["Title"] = "Randevu Düzenle";
@@ -18,13 +18,13 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
                             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Appointment")">Randevular</a></li>
-                            <li class="breadcrumb-item"><a href="@Url.Action("Details", "Appointment", new { id = Model.Id })">Detaylar</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Details", "Appointment", new { id = ViewBag.AppointmentId })">Detaylar</a></li>
                             <li class="breadcrumb-item active">Düzenle</li>
                         </ol>
                     </nav>
                 </div>
                 <div>
-                    <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
+                    <a href="@Url.Action("Details", "Appointment", new { id = ViewBag.AppointmentId })" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Geri Dön
                     </a>
                 </div>
@@ -38,52 +38,29 @@
                 </div>
                 <div class="card-body">
                     <form asp-action="Edit" method="post" id="editForm" novalidate>
-                        <input type="hidden" asp-for="Id" />
-                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" name="id" value="@ViewBag.AppointmentId" />
 
                         <div class="row">
                             <!-- Left Column -->
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label asp-for="PatientId" class="form-label">
-                                        <i class="fas fa-user text-primary"></i> Hasta ID
+                                    <label class="form-label">
+                                        <i class="fas fa-user text-primary"></i> Randevu ID
                                     </label>
-                                    <input asp-for="PatientId" class="form-control" placeholder="Hasta ID'sini girin">
-                                    <span asp-validation-for="PatientId" class="text-danger"></span>
+                                    <input class="form-control" value="@ViewBag.AppointmentId" disabled>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label asp-for="DoctorId" class="form-label">
-                                        <i class="fas fa-user-md text-success"></i> Doktor ID
-                                    </label>
-                                    <input asp-for="DoctorId" class="form-control" placeholder="Doktor ID'sini girin">
-                                    <span asp-validation-for="DoctorId" class="text-danger"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Type" class="form-label">
-                                        <i class="fas fa-stethoscope text-info"></i> Randevu Tipi
-                                    </label>
-                                    <select asp-for="Type" class="form-select">
-                                        <option value="">Randevu tipini seçin</option>
-                                        <option value="@AppointmentType.Consultation">Konsültasyon</option>
-                                        <option value="@AppointmentType.Surgery">Ameliyat</option>
-                                        <option value="@AppointmentType.Emergency">Acil</option>
-                                        <option value="@AppointmentType.Checkup">Kontrol</option>
-                                        <option value="@AppointmentType.Treatment">Tedavi</option>
-                                    </select>
-                                    <span asp-validation-for="Type" class="text-danger"></span>
-                                </div>
+                                
 
                                 <div class="mb-3">
                                     <label asp-for="Status" class="form-label">
                                         <i class="fas fa-info-circle text-warning"></i> Durum
                                     </label>
                                     <select asp-for="Status" class="form-select">
-                                        <option value="@AppointmentStatus.Scheduled">Planlandı</option>
-                                        <option value="@AppointmentStatus.Completed">Tamamlandı</option>
-                                        <option value="@AppointmentStatus.Cancelled">İptal Edildi</option>
-                                        <option value="@AppointmentStatus.NoShow">Gelmedi</option>
+                                        <option value="Scheduled">Planlandı</option>
+                                        <option value="Completed">Tamamlandı</option>
+                                        <option value="Cancelled">İptal Edildi</option>
+                                        <option value="NoShow">Gelmedi</option>
                                     </select>
                                     <span asp-validation-for="Status" class="text-danger"></span>
                                 </div>
@@ -95,8 +72,15 @@
                                     <label asp-for="AppointmentDate" class="form-label">
                                         <i class="fas fa-calendar text-primary"></i> Randevu Tarihi ve Saati
                                     </label>
-                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control">
+                                    <input asp-for="AppointmentDate" type="date" class="form-control">
                                     <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="AppointmentTime" class="form-label">
+                                        <i class="fas fa-clock text-primary"></i> Randevu Saati
+                                    </label>
+                                    <input asp-for="AppointmentTime" type="time" class="form-control">
+                                    <span asp-validation-for="AppointmentTime" class="text-danger"></span>
                                 </div>
 
                                 <div class="mb-3">
@@ -112,11 +96,7 @@
                                     <h6 class="alert-heading">
                                         <i class="fas fa-info-circle"></i> Mevcut Bilgiler
                                     </h6>
-                                    <p class="mb-1"><strong>Oluşturulma:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-                                    @if (Model.UpdatedAt.HasValue)
-                                    {
-                                        <p class="mb-0"><strong>Son Güncelleme:</strong> @Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                                    }
+                                    <p class="mb-1"><strong>Not:</strong> Bu sayfa temel tarih/saat, durum ve açıklama güncellemesi içindir.</p>
                                 </div>
                             </div>
                         </div>
@@ -127,7 +107,7 @@
                                 <hr>
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <a href="@Url.Action("Details", "Appointment", new { id = Model.Id })" class="btn btn-outline-secondary">
+                                        <a href="@Url.Action("Details", "Appointment", new { id = ViewBag.AppointmentId })" class="btn btn-outline-secondary">
                                             <i class="fas fa-times"></i> İptal
                                         </a>
                                     </div>
